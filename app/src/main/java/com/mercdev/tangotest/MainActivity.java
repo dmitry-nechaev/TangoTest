@@ -15,6 +15,9 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.atap.tangoservice.Tango;
@@ -90,6 +93,15 @@ public class MainActivity extends Activity {
         }
 
         setupRenderer();
+
+        ImageButton switchCameraVisibility = (ImageButton) findViewById(R.id.switch_camera_visibility);
+        switchCameraVisibility.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mRenderer.switchCameraBackgroundVisibilyty();
+                v.setAlpha(mRenderer.isBackgroundVisible() ? 1f : .4f);
+            }
+        });
     }
 
     @Override

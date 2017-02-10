@@ -194,4 +194,14 @@ public class AugmentedRealityRenderer extends Renderer {
     public void onTouchEvent(MotionEvent event) {
 
     }
+
+    public void switchCameraBackgroundVisibilyty() {
+        if (mBackgroundQuad != null) {
+            mBackgroundQuad.setVisible(!mBackgroundQuad.isVisible());
+        }
+    }
+
+    public boolean isBackgroundVisible() {
+        return mBackgroundQuad != null && mBackgroundQuad.isVisible();
+    }
 }
