@@ -17,6 +17,7 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -50,6 +51,8 @@ public class MainActivity extends Activity {
     private static final int CAMERA_PERMISSION_CODE = 0;
 
     private SurfaceView mSurfaceView;
+    private FrameLayout mapContainer;
+
     private AugmentedRealityRenderer mRenderer;
     private TangoCameraIntrinsics mIntrinsics;
     private Tango mTango;
@@ -94,12 +97,39 @@ public class MainActivity extends Activity {
 
         setupRenderer();
 
-        ImageButton switchCameraVisibility = (ImageButton) findViewById(R.id.switch_camera_visibility);
-        switchCameraVisibility.setOnClickListener(new View.OnClickListener() {
+        ImageButton homeButton = (ImageButton) findViewById(R.id.home);
+        homeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO open home screen
+            }
+        });
+
+        ImageButton switchCameraVisibilityButton = (ImageButton) findViewById(R.id.switch_camera_visibility);
+        switchCameraVisibilityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mRenderer.switchCameraBackgroundVisibilyty();
-                v.setAlpha(mRenderer.isBackgroundVisible() ? 1f : .4f);
+
+            }
+        });
+
+        ImageButton switch3dVisibilityButton = (ImageButton) findViewById(R.id.switch_3d_visibility);
+        switch3dVisibilityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO switch 3D visibility
+            }
+        });
+
+        mapContainer = (FrameLayout) findViewById(R.id.map_container);
+        ImageButton switchMapVisibilityButton = (ImageButton) findViewById(R.id.switch_map_visibility);
+        switchMapVisibilityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean isMapVisible = mapContainer.getVisibility() == View.VISIBLE;
+                mapContainer.setVisibility(isMapVisible ? View.GONE : View.VISIBLE);
+                v.setAlpha(!isMapVisible ? 1f : .4f);
             }
         });
     }
