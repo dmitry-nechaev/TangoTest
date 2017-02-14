@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.display.DisplayManager;
@@ -16,12 +17,13 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
 import android.view.View;
-import android.widget.Button;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.atap.tangoservice.Tango;
+import com.google.atap.tangoservice.TangoAreaDescriptionMetaData;
 import com.google.atap.tangoservice.TangoCameraIntrinsics;
 import com.google.atap.tangoservice.TangoConfig;
 import com.google.atap.tangoservice.TangoCoordinateFramePair;
@@ -68,12 +70,12 @@ public class MainActivity extends Activity {
 
     private int mColorCameraToDisplayAndroidRotation = 0;
 
+    private boolean isLocalized = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.a_main);
-        mSurfaceView = (SurfaceView) findViewById(R.id.surfaceview);
-        mRenderer = new AugmentedRealityRenderer(this);
 
         DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
         if (displayManager != null) {
@@ -94,8 +96,6 @@ public class MainActivity extends Activity {
                 }
             }, null);
         }
-
-        setupRenderer();
 
         ImageButton homeButton = (ImageButton) findViewById(R.id.home);
         homeButton.setOnClickListener(new View.OnClickListener() {
@@ -137,44 +137,71 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        mSurfaceView.onResume();
 
-        setAndroidOrientation();
-
-        // Set render mode to RENDERMODE_CONTINUOUSLY to force getting onDraw callbacks until
-        // the Tango service is properly set-up and we start getting onFrameAvailable callbacks.
-        mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        // Check and request camera permission at run time.
-        if (hasCameraPermission()) {
-            bindTangoService();
+        if (ContextCompat.checkSelfPermission(this, Tango.PERMISSIONTYPE_ADF_LOAD_SAVE) == PackageManager.PERMISSION_GRANTED) {
+            init();
         } else {
-            requestCameraPermission();
+            startActivityForResult(
+                    Tango.getRequestPermissionIntent(Tango.PERMISSIONTYPE_ADF_LOAD_SAVE),
+                    Tango.TANGO_INTENT_ACTIVITYCODE);
         }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        mSurfaceView.onPause();
-        // Synchronize against disconnecting while the service is being used in the OpenGL thread or
-        // in the UI thread.
-        // NOTE: DO NOT lock against this same object in the Tango callback thread. Tango.disconnect
-        // will block here until all Tango callback calls are finished. If you lock against this
-        // object in a Tango callback thread it will cause a deadlock.
-        synchronized (this) {
-            if (mIsConnected) {
-                try {
-                    mIsConnected = false;
-                    mTango.disconnectCamera(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
-                    // We need to invalidate the connected texture ID so that we cause a
-                    // re-connection in the OpenGL thread after resume.
-                    mConnectedTextureIdGlThread = INVALID_TEXTURE_ID;
-                    mTango.disconnect();
-                    mTango = null;
-                } catch (TangoErrorException e) {
-                    Log.e(TAG, getString(R.string.exception_tango_error), e);
+        if (mSurfaceView != null) {
+            mSurfaceView.onPause();
+
+            // Synchronize against disconnecting while the service is being used in the OpenGL thread or
+            // in the UI thread.
+            // NOTE: DO NOT lock against this same object in the Tango callback thread. Tango.disconnect
+            // will block here until all Tango callback calls are finished. If you lock against this
+            // object in a Tango callback thread it will cause a deadlock.
+            synchronized (this) {
+                if (mIsConnected) {
+                    try {
+                        if (mTango.getConfig(TangoConfig.CONFIG_TYPE_CURRENT).getBoolean(TangoConfig.KEY_BOOLEAN_LEARNINGMODE) == true) {
+                            String adfUuid = mTango.saveAreaDescription();
+                            TangoAreaDescriptionMetaData metadata = mTango.loadAreaDescriptionMetaData(adfUuid);
+                            mTango.saveAreaDescriptionMetadata(adfUuid, metadata);
+                        }
+                        isLocalized = false;
+                        mIsConnected = false;
+                        mTango.disconnectCamera(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
+                        // We need to invalidate the connected texture ID so that we cause a
+                        // re-connection in the OpenGL thread after resume.
+                        mConnectedTextureIdGlThread = INVALID_TEXTURE_ID;
+                        mTango.disconnect();
+                        mTango = null;
+                    } catch (TangoErrorException e) {
+                        Log.e(TAG, getString(R.string.exception_tango_error), e);
+                    }
                 }
             }
+        }
+    }
+
+    private void init() {
+        if (hasCameraPermission()) {
+            bindTangoService();
+
+            mSurfaceView = new SurfaceView(this);
+            setupRenderer();
+
+            FrameLayout surfaceContainer = (FrameLayout) findViewById(R.id.surface_container);
+            surfaceContainer.addView(mSurfaceView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+            mSurfaceView.onResume();
+
+            setAndroidOrientation();
+
+            // Set render mode to RENDERMODE_CONTINUOUSLY to force getting onDraw callbacks until
+            // the Tango service is properly set-up and we start getting onFrameAvailable callbacks.
+            mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+            // Check and request camera permission at run time.
+        } else {
+            requestCameraPermission();
         }
     }
 
@@ -208,6 +235,32 @@ public class MainActivity extends Activity {
                         Log.e(TAG, getString(R.string.exception_tango_invalid), e);
                     }
                 }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        synchronized (MainActivity.this) {
+                            final ImageButton adfRemoveButton = (ImageButton) findViewById(R.id.adf_remove_button);
+                            final ArrayList<String> uuidAdf = mTango.listAreaDescriptions();
+                            if (uuidAdf.size() == 0) {
+                                adfRemoveButton.setVisibility(View.INVISIBLE);
+                            } else {
+                                adfRemoveButton.setVisibility(View.VISIBLE);
+                                adfRemoveButton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        if (uuidAdf.size() > 0) {
+                                            for (String uuid : uuidAdf) {
+                                                mTango.deleteAreaDescription(uuid);
+                                            }
+                                            adfRemoveButton.setVisibility(View.INVISIBLE);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
             }
         });
     }
@@ -227,7 +280,16 @@ public class MainActivity extends Activity {
         // Drift correction allows motion tracking to recover after it loses tracking.
         // The drift corrected pose is is available through the frame pair with
         // base frame AREA_DESCRIPTION and target frame DEVICE.
-        config.putBoolean(TangoConfig.KEY_BOOLEAN_DRIFT_CORRECTION, true);
+        //config.putBoolean(TangoConfig.KEY_BOOLEAN_DRIFT_CORRECTION, true);
+
+        ArrayList<String> uuidAdf = tango.listAreaDescriptions();
+        if (uuidAdf.size() > 0) {
+            config.putString(TangoConfig.KEY_STRING_AREADESCRIPTION,
+                    uuidAdf.get(uuidAdf.size() - 1));
+        } else {
+            config.putBoolean(TangoConfig.KEY_BOOLEAN_LEARNINGMODE, true);
+        }
+
         return config;
     }
 
@@ -239,11 +301,28 @@ public class MainActivity extends Activity {
     private void startupTango() {
         // No need to add any coordinate frame pairs since we aren't using pose data from callbacks.
         ArrayList<TangoCoordinateFramePair> framePairs = new ArrayList<TangoCoordinateFramePair>();
+        framePairs.add(new TangoCoordinateFramePair(
+                TangoPoseData.COORDINATE_FRAME_AREA_DESCRIPTION,
+                TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE));
+
 
         mTango.connectListener(framePairs, new Tango.OnTangoUpdateListener() {
             @Override
-            public void onPoseAvailable(TangoPoseData pose) {
-                // We are not using onPoseAvailable for this app.
+            public void onPoseAvailable(final TangoPoseData pose) {
+                if (pose.baseFrame == TangoPoseData.COORDINATE_FRAME_AREA_DESCRIPTION
+                        && pose.targetFrame == TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE) {
+
+                   if (!isLocalized) {
+                        isLocalized = true;
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                FrameLayout frame = (FrameLayout) findViewById(R.id.process_localize_cover);
+                                frame.setVisibility(View.GONE);
+                            }
+                        });
+                   }
+                }
             }
 
             @Override
@@ -296,6 +375,8 @@ public class MainActivity extends Activity {
         // Register a Rajawali Scene Frame Callback to update the scene camera pose whenever a new
         // RGB frame is rendered.
         // (@see https://github.com/Rajawali/Rajawali/wiki/Scene-Frame-Callbacks)
+
+        mRenderer = new AugmentedRealityRenderer(this);
         mRenderer.getCurrentScene().registerFrameCallback(new ASceneFrameCallback() {
             @Override
             public void onPreFrame(long sceneTime, double deltaTime) {
@@ -493,12 +574,14 @@ public class MainActivity extends Activity {
                 getColorCameraToDisplayAndroidRotation(display.getRotation(),
                         colorCameraInfo.orientation);
         // Run this in OpenGL thread.
-        mSurfaceView.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-                mRenderer.updateColorCameraTextureUvGlThread(mColorCameraToDisplayAndroidRotation);
-            }
-        });
+        if (mSurfaceView != null) {
+            mSurfaceView.queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    mRenderer.updateColorCameraTextureUvGlThread(mColorCameraToDisplayAndroidRotation);
+                }
+            });
+        }
     }
 
     /**
@@ -543,10 +626,22 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
         if (hasCameraPermission()) {
-            bindTangoService();
+            init();
         } else {
             Toast.makeText(this, "Java Augmented Reality Example requires camera permission",
                     Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == Tango.TANGO_INTENT_ACTIVITYCODE) {
+            if (resultCode == RESULT_CANCELED) {
+                finish();
+            } else {
+                init();
+            }
         }
     }
 }

@@ -5,4 +5,7 @@
     <string name="exception_tango_invalid">"Tango invalid exception! Try again!"</string>
     <string name="exception_out_of_date">"Tango service outdated!"</string>
     <string name="permission_camera">"Camera permission needed!"</string>
+
+    <string name="process_localization">"The process of localization..."</string>
+
 </resources>

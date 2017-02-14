@@ -43,16 +43,39 @@
             android:layout_margin="8dp"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_map" />
+
+        <ImageButton
+            android:id="@+id/adf_remove_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_remove_file" />
+
     </LinearLayout>
 
     <FrameLayout
+        android:id="@+id/process_localize_cover"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorPrimary">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/process_localization"/>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/surface_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <org.rajawali3d.view.SurfaceView
+        <!--<org.rajawali3d.view.SurfaceView
             android:id="@+id/surfaceview"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent" />-->
         
         <FrameLayout
             android:id="@+id/map_container"
