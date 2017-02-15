@@ -9,22 +9,32 @@ import android.graphics.Rect;
 
 public class Fixture {
 
-    private Rect rect;
-    private float height;
+    private Point position;
+    private int height, width, depth;
     private int color;
 
-    public Fixture(Rect rect, float height, int color) {
-        this.rect = rect;
+    public Fixture(Point position, int height, int width, int depth, int color) {
+        this.position = position;
         this.height = height;
+        this.width = width;
+        this.depth = depth;
         this.color = color;
     }
 
-    public Rect getRect() {
-        return rect;
+    public Point getPosition() {
+        return position;
     }
 
-    public float getHeight() {
+    public int getHeight() {
         return height;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getDepth() {
+        return depth;
     }
 
     public int getColor() {

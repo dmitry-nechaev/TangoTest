@@ -40,12 +40,12 @@ public class Minimap extends View {
     @Override
     public void onDraw(Canvas canvas) {
         for (Fixture fixture : fixtures) {
-            paint.setColor(fixture.getColor());
+            paint.setColor(Color.BLACK);
             canvas.drawRect(
-                    new Rect((int) Math.abs(fixture.getRect().left * delta - minX),
-                            (int) Math.abs(fixture.getRect().top * delta - minY),
-                            (int) Math.abs(fixture.getRect().right * delta - minX),
-                            (int) Math.abs(fixture.getRect().bottom * delta - minY)), paint);
+                    new Rect((int) Math.abs(fixture.getPosition().x * delta - minX),
+                            (int) Math.abs(fixture.getPosition().y * delta - minY),
+                            (int) Math.abs(fixture.getPosition().x + fixture.getWidth() - minX),
+                            (int) Math.abs(fixture.getPosition().y + fixture.getHeight() * delta - minY)), paint);
         }
 
         paint.setColor(Color.BLUE);
@@ -55,22 +55,22 @@ public class Minimap extends View {
     public void setFixtures(ArrayList<Fixture> fixtures, Resources resources) {
         this.fixtures = fixtures;
         if (fixtures.size() > 0) {
-            minX = fixtures.get(0).getRect().left;
-            maxX = fixtures.get(0).getRect().right;
-            minY = fixtures.get(0).getRect().top;
-            maxY = fixtures.get(0).getRect().bottom;
+            minX = fixtures.get(0).getPosition().x;
+            maxX = fixtures.get(0).getPosition().x + fixtures.get(0).getWidth();
+            minY = fixtures.get(0).getPosition().y;
+            maxY = fixtures.get(0).getPosition().y + fixtures.get(0).getHeight();
             for (Fixture fixture : fixtures) {
-                if (fixture.getRect().left < minX) {
-                    minX = fixture.getRect().left;
+                if (fixture.getPosition().x < minX) {
+                    minX = fixture.getPosition().x;
                 }
-                if (fixture.getRect().right > maxX) {
-                    maxX = fixture.getRect().right;
+                if (fixture.getPosition().x + fixture.getWidth() > maxX) {
+                    maxX = fixture.getPosition().x + fixture.getWidth();
                 }
-                if (fixture.getRect().top < minY) {
-                    minY = fixture.getRect().top;
+                if (fixture.getPosition().y < minY) {
+                    minY = fixture.getPosition().y;
                 }
-                if (fixture.getRect().bottom > maxY) {
-                    maxY = fixture.getRect().bottom;
+                if (fixture.getPosition().y + fixture.getHeight() > maxY) {
+                    maxY = fixture.getPosition().y + fixture.getHeight();
                 }
             }
         }

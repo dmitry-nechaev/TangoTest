@@ -7,7 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Rect;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.display.DisplayManager;
 import android.opengl.GLSurfaceView;
@@ -121,6 +121,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 mRenderer.switchCameraBackgroundVisibilyty();
+                v.setAlpha(mRenderer.isBackgroundVisible() ? 1f : .4f);
 
             }
         });
@@ -130,6 +131,8 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 //TODO switch 3D visibility
+                mRenderer.switchFixturesVisibilyty();
+                v.setAlpha(mRenderer.isFixturesVisible() ? 1f : .4f);
             }
         });
 
@@ -177,7 +180,7 @@ public class MainActivity extends Activity {
             synchronized (this) {
                 if (mIsConnected) {
                     try {
-                        if (mTango.getConfig(TangoConfig.CONFIG_TYPE_CURRENT).getBoolean(TangoConfig.KEY_BOOLEAN_LEARNINGMODE) == true) {
+                        if (isLocalized) {
                             String adfUuid = mTango.saveAreaDescription();
                             TangoAreaDescriptionMetaData metadata = mTango.loadAreaDescriptionMetaData(adfUuid);
                             mTango.saveAreaDescriptionMetadata(adfUuid, metadata);
@@ -649,13 +652,8 @@ public class MainActivity extends Activity {
     private void initFixtures() {
         fixtures = new ArrayList<>();
 
-        fixtures.add(new Fixture(new Rect(100, -50, 140, 155), 400, Color.BLACK));
-        fixtures.add(new Fixture(new Rect(-100, -50, -60, 150), 200, Color.BLACK));
-        //fixtures.add(new Fixture(new Rect(360, 10, 380, 170), 200, Color.BLACK));
-
-        /*fixtures.add(new Fixture(new Rect(20, 15, 40, 25), 2, Color.BLACK));
-        fixtures.add(new Fixture(new Rect(200, 150, 240, 175), 4, Color.BLACK));
-        fixtures.add(new Fixture(new Rect(40, 100, 47, 80), 2, Color.BLACK));*/
+        fixtures.add(new Fixture(new Point(100, -50), 400, 40, 200, Color.WHITE));
+        fixtures.add(new Fixture(new Point(-100, -50), 200, 40, 200, Color.WHITE));
     }
 
     @Override

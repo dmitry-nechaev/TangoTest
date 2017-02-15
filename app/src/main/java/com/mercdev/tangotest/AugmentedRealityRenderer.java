@@ -34,6 +34,8 @@ import org.rajawali3d.primitives.RectangularPrism;
 import org.rajawali3d.primitives.ScreenQuad;
 import org.rajawali3d.renderer.Renderer;
 
+import java.util.ArrayList;
+
 import javax.microedition.khronos.opengles.GL10;
 
 /**
@@ -57,6 +59,10 @@ public class AugmentedRealityRenderer extends Renderer {
     private boolean mSceneCameraConfigured;
 
     private ScreenQuad mBackgroundQuad;
+
+    private ArrayList<Fixture> fixtures;
+
+    private boolean isFixturesVisible = true;
 
     public AugmentedRealityRenderer(Context context) {
         super(context);
@@ -92,20 +98,36 @@ public class AugmentedRealityRenderer extends Renderer {
         light.setPosition(3, 2, 4);
         getCurrentScene().addLight(light);
 
+        if (fixtures != null && isFixturesVisible) {
+            for (Fixture fixture : fixtures) {
+
+                Material material = new Material();
+                material.setColor(Color.WHITE);
+                material.enableLighting(true);
+                material.setDiffuseMethod(new DiffuseMethod.Lambert());
+
+                RectangularPrism rect = new RectangularPrism(fixture.getWidth() / 100, fixture.getHeight() / 100, fixture.getDepth() / 100);
+                rect.setPosition(fixture.getPosition().x, -0.3, fixture.getPosition().y);
+                rect.setMaterial(material);
+                getCurrentScene().addChild(rect);
+            }
+        }
+
         Material material = new Material();
         material.setColor(Color.WHITE);
         material.enableLighting(true);
         material.setDiffuseMethod(new DiffuseMethod.Lambert());
 
         RectangularPrism firstRect = new RectangularPrism(0.4f, 4, 2);
-        firstRect.setPosition(1, -0.5, -2);
+        firstRect.setPosition(1, -0.3, -2);
         firstRect.setMaterial(material);
         getCurrentScene().addChild(firstRect);
 
         RectangularPrism secontRect = new RectangularPrism(0.4f, 2, 2);
-        secontRect.setPosition(-1, -0.5, -2);
+        secontRect.setPosition(-1, -0.3, -2);
         secontRect.setMaterial(material);
         getCurrentScene().addChild(secontRect);
+
 
     }
 
@@ -203,5 +225,18 @@ public class AugmentedRealityRenderer extends Renderer {
 
     public boolean isBackgroundVisible() {
         return mBackgroundQuad != null && mBackgroundQuad.isVisible();
+    }
+
+    public void switchFixturesVisibilyty() {
+        isFixturesVisible = !isFixturesVisible;
+        getCurrentScene().reload();
+    }
+
+    public boolean isFixturesVisible() {
+        return isFixturesVisible;
+    }
+
+    public void setFixtures(ArrayList<Fixture> fixtures) {
+        this.fixtures = fixtures;
     }
 }
