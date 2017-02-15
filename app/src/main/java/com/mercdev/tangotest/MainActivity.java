@@ -97,6 +97,12 @@ public class MainActivity extends Activity {
             }, null);
         }
 
+        mSurfaceView = new SurfaceView(this);
+        setupRenderer();
+
+        FrameLayout surfaceContainer = (FrameLayout) findViewById(R.id.surface_container);
+        surfaceContainer.addView(mSurfaceView, 0, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
         ImageButton homeButton = (ImageButton) findViewById(R.id.home);
         homeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -139,7 +145,7 @@ public class MainActivity extends Activity {
         super.onStart();
 
         if (ContextCompat.checkSelfPermission(this, Tango.PERMISSIONTYPE_ADF_LOAD_SAVE) == PackageManager.PERMISSION_GRANTED) {
-            init();
+            bindTangoAndResumeSurface();
         } else {
             startActivityForResult(
                     Tango.getRequestPermissionIntent(Tango.PERMISSIONTYPE_ADF_LOAD_SAVE),
@@ -182,15 +188,9 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void init() {
+    private void bindTangoAndResumeSurface() {
         if (hasCameraPermission()) {
             bindTangoService();
-
-            mSurfaceView = new SurfaceView(this);
-            setupRenderer();
-
-            FrameLayout surfaceContainer = (FrameLayout) findViewById(R.id.surface_container);
-            surfaceContainer.addView(mSurfaceView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
             mSurfaceView.onResume();
 
@@ -626,7 +626,7 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
         if (hasCameraPermission()) {
-            init();
+            bindTangoAndResumeSurface();
         } else {
             Toast.makeText(this, "Java Augmented Reality Example requires camera permission",
                     Toast.LENGTH_LONG).show();
@@ -640,7 +640,7 @@ public class MainActivity extends Activity {
             if (resultCode == RESULT_CANCELED) {
                 finish();
             } else {
-                init();
+                bindTangoAndResumeSurface();
             }
         }
     }
