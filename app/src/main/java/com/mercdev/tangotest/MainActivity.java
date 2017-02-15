@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.display.DisplayManager;
 import android.opengl.GLSurfaceView;
@@ -16,7 +18,6 @@ import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -52,6 +53,7 @@ public class MainActivity extends Activity {
 
     private SurfaceView mSurfaceView;
     private FrameLayout mapContainer;
+    private Minimap minimap;
 
     private AugmentedRealityRenderer mRenderer;
     private TangoCameraIntrinsics mIntrinsics;
@@ -59,6 +61,8 @@ public class MainActivity extends Activity {
     private TangoConfig mConfig;
     private boolean mIsConnected = false;
     private double mCameraPoseTimestamp = 0;
+
+    private ArrayList<Fixture> fixtures;
 
     // Texture rendering related fields.
     // NOTE: Naming indicates which thread is in charge of updating this variable.
@@ -122,7 +126,12 @@ public class MainActivity extends Activity {
             }
         });
 
+        initFixtures();
+
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
+        minimap = (Minimap) findViewById(R.id.minimap);
+        minimap.setFixtures(fixtures, getResources());
+
         ImageButton switchMapVisibilityButton = (ImageButton) findViewById(R.id.switch_map_visibility);
         switchMapVisibilityButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -355,6 +364,9 @@ public class MainActivity extends Activity {
                                 // Update the camera pose from the renderer
                                 mRenderer.updateRenderCameraPose(lastFramePose);
                                 mCameraPoseTimestamp = lastFramePose.timestamp;
+
+                                minimap.setCameraPosition(lastFramePose);
+                                minimap.postInvalidate();
                             } else {
                                 // When the pose status is not valid, it indicates the tracking has
                                 // been lost. In this case, we simply stop rendering.
@@ -548,5 +560,17 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Java Augmented Reality Example requires camera permission",
                     Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void initFixtures() {
+        fixtures = new ArrayList<>();
+
+        fixtures.add(new Fixture(new Rect(100, -50, 140, 155), 400, Color.BLACK));
+        fixtures.add(new Fixture(new Rect(-100, -50, -60, 150), 200, Color.BLACK));
+        //fixtures.add(new Fixture(new Rect(360, 10, 380, 170), 200, Color.BLACK));
+
+        /*fixtures.add(new Fixture(new Rect(20, 15, 40, 25), 2, Color.BLACK));
+        fixtures.add(new Fixture(new Rect(200, 150, 240, 175), 4, Color.BLACK));
+        fixtures.add(new Fixture(new Rect(40, 100, 47, 80), 2, Color.BLACK));*/
     }
 }
