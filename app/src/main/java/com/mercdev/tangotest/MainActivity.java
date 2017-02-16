@@ -655,6 +655,9 @@ public class MainActivity extends Activity {
 
         fixtures.add(new Fixture(new Point(100, -50), 400, 40, 200, Color.WHITE));
         fixtures.add(new Fixture(new Point(-100, -50), 200, 40, 200, Color.WHITE));
+        fixtures.add(new Fixture(new Point(-100, 250), 400, 400, 40, Color.WHITE));
+        fixtures.add(new Fixture(new Point(300, 1250), 400, 400, 40, Color.WHITE));
+        fixtures.add(new Fixture(new Point(-200, -670), 400, 600, 25, Color.WHITE));
     }
 
     @Override
