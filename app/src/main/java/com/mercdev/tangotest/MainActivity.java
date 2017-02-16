@@ -102,6 +102,8 @@ public class MainActivity extends Activity {
             }, null);
         }
 
+        initFixtures();
+
         mSurfaceView = new SurfaceView(this);
         setupRenderer();
 
@@ -135,8 +137,6 @@ public class MainActivity extends Activity {
                 v.setAlpha(mRenderer.isFixturesVisible() ? 1f : .4f);
             }
         });
-
-        initFixtures();
 
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
         minimap = (Minimap) findViewById(R.id.minimap);
@@ -390,6 +390,7 @@ public class MainActivity extends Activity {
         // (@see https://github.com/Rajawali/Rajawali/wiki/Scene-Frame-Callbacks)
 
         mRenderer = new AugmentedRealityRenderer(this);
+        mRenderer.setFixtures(fixtures);
         mRenderer.getCurrentScene().registerFrameCallback(new ASceneFrameCallback() {
             @Override
             public void onPreFrame(long sceneTime, double deltaTime) {
