@@ -32,6 +32,7 @@ import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.StreamingTexture;
 import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.math.Quaternion;
+import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.RectangularPrism;
 import org.rajawali3d.primitives.ScreenQuad;
 import org.rajawali3d.renderer.Renderer;
@@ -64,6 +65,9 @@ public class AugmentedRealityRenderer extends Renderer {
 
     private ScreenQuad mBackgroundQuad;
     private ArrayList<Object3D> objects = new ArrayList<>();
+
+    private float cameraHeight = 0.0f;
+    private boolean mObjectPoseUpdated = false;
 
     private ArrayList<Fixture> fixtures;
 
@@ -168,6 +172,12 @@ public class AugmentedRealityRenderer extends Renderer {
         // quaternions.
         getCurrentCamera().setRotation(quaternion.conjugate());
         getCurrentCamera().setPosition(translation[0], translation[1], translation[2]);
+        //Log.d("AGn", String.format("Translation: x - %f, y - %f, z - %f", translation[0], translation[1], translation[2]));
+    }
+
+    public void setCameraHeightFromFloor(float height) {
+        this.cameraHeight = height;
+        mObjectPoseUpdated = true;
     }
 
     /**
@@ -222,6 +232,7 @@ public class AugmentedRealityRenderer extends Renderer {
         return mBackgroundQuad != null && mBackgroundQuad.isVisible();
     }
 
+
     public void switchFixturesVisibilyty() {
         isFixturesVisible = !isFixturesVisible;
         for (Object3D object : objects) {
@@ -239,5 +250,21 @@ public class AugmentedRealityRenderer extends Renderer {
 
     public void getObjectAt(float x, float y) {
         picker.getObjectAt(x, y);
+    }
+
+    @Override
+    protected void onRender(long elapsedRealTime, double deltaTime) {
+        synchronized (this) {
+            if (mObjectPoseUpdated) {
+                for (Object3D object3D : objects) {
+                    // Place the 3D object in the location of the detected plane.
+                    Vector3 vector3 = object3D.getPosition();
+                    object3D.setPosition(new Vector3(vector3.x, -cameraHeight, vector3.z));
+                }
+                mObjectPoseUpdated = false;
+            }
+        }
+
+        super.onRender(elapsedRealTime, deltaTime);
     }
 }

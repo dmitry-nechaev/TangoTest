@@ -43,6 +43,7 @@ import com.projecttango.tangosupport.TangoSupport;
 import org.rajawali3d.Object3D;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
+import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.scene.ASceneFrameCallback;
 import org.rajawali3d.util.OnObjectPickedListener;
 import org.rajawali3d.view.SurfaceView;
@@ -83,6 +84,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private int mColorCameraToDisplayAndroidRotation = 0;
 
     private boolean isLocalized = false;
+    private boolean isFloorPlaneDefined = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -301,6 +303,9 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
         // base frame AREA_DESCRIPTION and target frame DEVICE.
         //config.putBoolean(TangoConfig.KEY_BOOLEAN_DRIFT_CORRECTION, true);
 
+        config.putBoolean(TangoConfig.KEY_BOOLEAN_DEPTH, true);
+        config.putInt(TangoConfig.KEY_INT_DEPTH_MODE, TangoConfig.TANGO_DEPTH_MODE_POINT_CLOUD);
+
         ArrayList<String> uuidAdf = tango.listAreaDescriptions();
         if (uuidAdf.size() > 0) {
             config.putString(TangoConfig.KEY_STRING_AREADESCRIPTION,
@@ -333,13 +338,15 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
                     if (!isLocalized) {
                         isLocalized = true;
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                FrameLayout frame = (FrameLayout) findViewById(R.id.process_localize_cover);
-                                frame.setVisibility(View.GONE);
-                            }
-                        });
+                        if (isFloorPlaneDefined) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    FrameLayout frame = (FrameLayout) findViewById(R.id.process_localize_cover);
+                                    frame.setVisibility(View.GONE);
+                                }
+                            });
+                        }
                     }
                 }
             }
@@ -351,7 +358,23 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
             @Override
             public void onPointCloudAvailable(TangoPointCloudData pointCloud) {
-                // We are not using onPointCloudAvailable for this app.
+                if (pointCloud != null && !isFloorPlaneDefined) {
+                    float cameraHeight = (float)FloorPlaneDefinitionHelper.getCameraHeightFromFloor(pointCloud, mRgbTimestampGlThread, mColorCameraToDisplayAndroidRotation);
+                    //Log.d("AGn", "Height of camera is " + cameraHeight);
+                    if (cameraHeight != 0.0) {
+                        mRenderer.setCameraHeightFromFloor(cameraHeight);
+                        isFloorPlaneDefined = true;
+                        if (isLocalized) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    FrameLayout frame = (FrameLayout) findViewById(R.id.process_localize_cover);
+                                    frame.setVisibility(View.GONE);
+                                }
+                            });
+                        }
+                    }
+                }
             }
 
             @Override
