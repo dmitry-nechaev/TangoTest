@@ -17,6 +17,7 @@ package com.mercdev.tangotest;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -34,6 +35,8 @@ import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.primitives.RectangularPrism;
 import org.rajawali3d.primitives.ScreenQuad;
 import org.rajawali3d.renderer.Renderer;
+import org.rajawali3d.util.ObjectColorPicker;
+import org.rajawali3d.util.OnObjectPickedListener;
 
 import java.util.ArrayList;
 
@@ -66,8 +69,12 @@ public class AugmentedRealityRenderer extends Renderer {
 
     private boolean isFixturesVisible = true;
 
-    public AugmentedRealityRenderer(Context context) {
+    private ObjectColorPicker picker;
+
+    public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener) {
         super(context);
+        picker = new ObjectColorPicker(this);
+        picker.setOnObjectPickedListener(onObjectPickedListener);
     }
 
     @Override
@@ -100,6 +107,7 @@ public class AugmentedRealityRenderer extends Renderer {
         light.setPosition(3, 2, 4);
         getCurrentScene().addLight(light);
 
+
         if (fixtures != null && isFixturesVisible) {
             for (Fixture fixture : fixtures) {
 
@@ -113,6 +121,7 @@ public class AugmentedRealityRenderer extends Renderer {
                 rect.setMaterial(material);
                 getCurrentScene().addChild(rect);
                 objects.add(rect);
+                picker.registerObject(rect);
             }
         }
     }
@@ -226,5 +235,9 @@ public class AugmentedRealityRenderer extends Renderer {
 
     public void setFixtures(ArrayList<Fixture> fixtures) {
         this.fixtures = fixtures;
+    }
+
+    public void getObjectAt(float x, float y) {
+        picker.getObjectAt(x, y);
     }
 }

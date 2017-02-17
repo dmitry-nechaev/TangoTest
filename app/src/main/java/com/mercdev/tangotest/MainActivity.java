@@ -13,10 +13,12 @@ import android.hardware.display.DisplayManager;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Display;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,13 +40,17 @@ import com.google.atap.tangoservice.TangoPoseData;
 import com.google.atap.tangoservice.TangoXyzIjData;
 import com.projecttango.tangosupport.TangoSupport;
 
+import org.rajawali3d.Object3D;
+import org.rajawali3d.materials.Material;
+import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.scene.ASceneFrameCallback;
+import org.rajawali3d.util.OnObjectPickedListener;
 import org.rajawali3d.view.SurfaceView;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements View.OnTouchListener, OnObjectPickedListener {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int INVALID_TEXTURE_ID = 0;
 
@@ -64,6 +70,7 @@ public class MainActivity extends Activity {
     private TangoConfig mConfig;
     private boolean mIsConnected = false;
     private double mCameraPoseTimestamp = 0;
+    private Object3D previousObject;
 
     private ArrayList<Fixture> fixtures;
 
@@ -132,7 +139,6 @@ public class MainActivity extends Activity {
         switch3dVisibilityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO switch 3D visibility
                 mRenderer.switchFixturesVisibilyty();
                 v.setAlpha(mRenderer.isFixturesVisible() ? 1f : .4f);
             }
@@ -389,7 +395,7 @@ public class MainActivity extends Activity {
         // RGB frame is rendered.
         // (@see https://github.com/Rajawali/Rajawali/wiki/Scene-Frame-Callbacks)
 
-        mRenderer = new AugmentedRealityRenderer(this);
+        mRenderer = new AugmentedRealityRenderer(this, this);
         mRenderer.setFixtures(fixtures);
         mRenderer.getCurrentScene().registerFrameCallback(new ASceneFrameCallback() {
             @Override
@@ -490,6 +496,7 @@ public class MainActivity extends Activity {
         });
 
         mSurfaceView.setSurfaceRenderer(mRenderer);
+        mSurfaceView.setOnTouchListener(this);
     }
 
     private static int getColorCameraToDisplayAndroidRotation(int displayRotation,
@@ -670,5 +677,40 @@ public class MainActivity extends Activity {
                 bindTangoAndResumeSurface();
             }
         }
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            mRenderer.getObjectAt(event.getX(), event.getY());
+        }
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    public void onObjectPicked(@NonNull Object3D object) {
+        Material material = new Material();
+        material.enableLighting(true);
+        material.setDiffuseMethod(new DiffuseMethod.Lambert());
+        if (previousObject != null) {
+            material.setColor(Color.WHITE);
+            previousObject.setMaterial(material);
+        }
+        material.setColor(Color.GREEN);
+        object.setMaterial(material);
+
+        previousObject = object;
+    }
+
+    @Override
+    public void onNoObjectPicked() {
+        if (previousObject != null) {
+            Material material = new Material();
+            material.enableLighting(true);
+            material.setDiffuseMethod(new DiffuseMethod.Lambert());
+            material.setColor(Color.WHITE);
+            previousObject.setMaterial(material);
+        }
+        previousObject = null;
     }
 }
