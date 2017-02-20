@@ -36,7 +36,7 @@ public class FloorPlaneDefinitionHelper {
 
             TangoSupport.IntersectionPointPlaneModelPair intersectionPointPlaneModelPair =
                     TangoSupport.fitPlaneModelNearPoint(pointCloud,
-                            identityTranslation, identityRotation, uv[0], uv[1],
+                            identityTranslation, identityRotation, uv[0], uv[1], colorCameraToDisplayAndroidRotation,
                             depthTcolorPose.translation, depthTcolorPose.rotation);
             if (intersectionPointPlaneModelPair != null) {
                 return intersectionPointPlaneModelPair.intersectionPoint[2];
