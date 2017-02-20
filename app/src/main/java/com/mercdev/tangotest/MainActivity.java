@@ -63,6 +63,8 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private SurfaceView mSurfaceView;
     private FrameLayout mapContainer;
     private Minimap minimap;
+    private View nothingTargeted;
+    private View marker;
 
     private AugmentedRealityRenderer mRenderer;
     private TangoCameraIntrinsics mIntrinsics;
@@ -144,6 +146,9 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
                 v.setAlpha(mRenderer.isFixturesVisible() ? 1f : .4f);
             }
         });
+
+        nothingTargeted = findViewById(R.id.nothing_targeted);
+        marker = findViewById(R.id.marker);
 
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
         minimap = (Minimap) findViewById(R.id.minimap);
@@ -480,6 +485,8 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
                                 minimap.setCameraPosition(lastFramePose);
                                 minimap.postInvalidate();
+
+                                mRenderer.getObjectAt(mSurfaceView.getWidth() / 2, mSurfaceView.getHeight() / 2);
                             } else {
                                 // When the pose status is not valid, it indicates the tracking has
                                 // been lost. In this case, we simply stop rendering.
@@ -710,6 +717,8 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
     @Override
     public void onObjectPicked(@NonNull Object3D object) {
+        changeMarkerColor(Color.GREEN);
+
         Material material = new Material();
         material.enableLighting(true);
         material.setDiffuseMethod(new DiffuseMethod.Lambert());
@@ -725,6 +734,8 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
     @Override
     public void onNoObjectPicked() {
+        changeMarkerColor(Color.RED);
+
         if (previousObject != null) {
             Material material = new Material();
             material.enableLighting(true);
@@ -733,5 +744,14 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
             previousObject.setMaterial(material);
         }
         previousObject = null;
+    }
+
+    private void changeMarkerColor(final int color) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                marker.setBackgroundColor(color);
+            }
+        });
     }
 }

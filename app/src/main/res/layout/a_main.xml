@@ -73,12 +73,45 @@
         android:layout_height="match_parent">
 
         <FrameLayout
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_margin="16dp"
+            android:padding="16dp"
+            android:alpha="0.75"
+            android:background="@color/colorPrimaryDark">
+
+            <LinearLayout
+                android:id="@+id/nothing_targeted"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"
+                    android:text="@string/fixture_dialog_nothing_targeted"
+                    android:layout_marginBottom="32dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"
+                    android:text="@string/fixture_dialog_nothing_targeted_hint"/>
+            </LinearLayout>
+
+        </FrameLayout>
+
+        <FrameLayout
             android:id="@+id/map_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="right|top"
             android:layout_margin="16dp"
-            android:alpha="0.7"
+            android:alpha="0.75"
             android:background="@color/colorPrimaryDark">
 
             <com.mercdev.tangotest.Minimap
@@ -86,6 +119,14 @@
                 android:layout_width="@dimen/minimap_width"
                 android:layout_height="@dimen/minimap_height" />
         </FrameLayout>
+        
+        <View
+            android:id="@+id/marker"
+            android:layout_width="@dimen/marker_size"
+            android:layout_height="@dimen/marker_size"
+            android:layout_gravity="center"
+            android:alpha="0.75"
+            android:background="@android:color/holo_red_dark"/>
     </FrameLayout>
 
 </LinearLayout>

@@ -8,4 +8,7 @@
 
     <string name="process_localization">"The process of localization..."</string>
 
+    <string name="fixture_dialog_nothing_targeted">Nothing targeted</string>
+    <string name="fixture_dialog_nothing_targeted_hint">(Point the target at a map object to make changes)</string>
+
 </resources>
