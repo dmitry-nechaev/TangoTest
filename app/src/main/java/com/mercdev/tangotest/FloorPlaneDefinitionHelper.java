@@ -22,45 +22,48 @@ public class FloorPlaneDefinitionHelper {
      * of the world feature pointed at the location the camera is looking.
      * It returns the transform of the fitted plane in a double array.
      */
-    public static double getCameraHeightFromFloor(TangoPointCloudData pointCloud, double rgbTimestamp, int colorCameraToDisplayAndroidRotation) {
+    public static Matrix4 getTransformFloorMatrix4(float u, float v, TangoPointCloudData pointCloud, double rgbTimestamp, int colorCameraToDisplayAndroidRotation) {
         // We need to calculate the transform between the color camera at the
         // time the user clicked and the depth camera at the time the depth
         // cloud was acquired.
+
+        if (pointCloud == null) {
+            return null;
+        }
+
         TangoPoseData depthTcolorPose = TangoSupport.calculateRelativePose(pointCloud.timestamp, TangoPoseData.COORDINATE_FRAME_CAMERA_DEPTH,
                                                                            rgbTimestamp, TangoPoseData.COORDINATE_FRAME_CAMERA_COLOR);
         try {
-            float[] uv = getColorCameraUVFromDisplay(0.5f, 0.5f, colorCameraToDisplayAndroidRotation);
             // Perform plane fitting with the latest available point cloud data.
             double[] identityTranslation = {0.0, 0.0, 0.0};
             double[] identityRotation = {0.0, 0.0, 0.0, 1.0};
 
             TangoSupport.IntersectionPointPlaneModelPair intersectionPointPlaneModelPair =
                     TangoSupport.fitPlaneModelNearPoint(pointCloud,
-                            identityTranslation, identityRotation, uv[0], uv[1], colorCameraToDisplayAndroidRotation,
+                            identityTranslation, identityRotation, u, v, colorCameraToDisplayAndroidRotation,
                             depthTcolorPose.translation, depthTcolorPose.rotation);
-            if (intersectionPointPlaneModelPair != null) {
-                return intersectionPointPlaneModelPair.intersectionPoint[2];
-            }
-            /*} else {
+
+            // Get the transform from depth camera to OpenGL world at the timestamp of the cloud.
+            TangoSupport.TangoMatrixTransformData transform =
+                    TangoSupport.getMatrixTransformAtTime(pointCloud.timestamp,
+                            TangoPoseData.COORDINATE_FRAME_AREA_DESCRIPTION,
+                            TangoPoseData.COORDINATE_FRAME_CAMERA_DEPTH,
+                            TangoSupport.TANGO_SUPPORT_ENGINE_OPENGL,
+                            TangoSupport.TANGO_SUPPORT_ENGINE_TANGO,
+                            TangoSupport.ROTATION_IGNORED);
+            if (transform.statusCode == TangoPoseData.POSE_VALID) {
+                float[] openGlTPlane = calculatePlaneTransform(
+                        intersectionPointPlaneModelPair.intersectionPoint,
+                        intersectionPointPlaneModelPair.planeModel, transform.matrix);
+
+                return new Matrix4(openGlTPlane);
+            } else {
                 Log.w(TAG, "Can't get depth camera transform at time " + pointCloud.timestamp);
-            }*/
+            }
         } catch (TangoException e) {
             Log.d(TAG, "Failed to floor plane definition. " + e.getMessage());
         }
-        return 0.0;
-    }
-
-    private static float[] getColorCameraUVFromDisplay(float u, float v, int colorToDisplayRotation) {
-        switch (colorToDisplayRotation) {
-            case 1:
-                return new float[]{1.0f - v, u};
-            case 2:
-                return new float[]{1.0f - u, 1.0f - v};
-            case 3:
-                return new float[]{v, 1.0f - u};
-            default:
-                return new float[]{u, v};
-        }
+        return null;
     }
 
     /**
@@ -132,5 +135,4 @@ public class FloorPlaneDefinitionHelper {
         result[2] = v1[0] * v2[1] - v2[0] * v1[1];
         return result;
     }
-
 }

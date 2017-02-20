@@ -63,9 +63,7 @@ public class AugmentedRealityRenderer extends Renderer {
 
     private ScreenQuad mBackgroundQuad;
     private ArrayList<Object3D> objects = new ArrayList<>();
-
-    private float cameraHeight = 0.0f;
-    private boolean mObjectPoseUpdated = false;
+    private Matrix4 transformFloorMatrix4;
 
     private ArrayList<Fixture> fixtures;
 
@@ -73,8 +71,9 @@ public class AugmentedRealityRenderer extends Renderer {
 
     private ObjectColorPicker picker;
 
-    public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener) {
+    public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener, Matrix4 transformFloorMatrix4) {
         super(context);
+        this.transformFloorMatrix4 = transformFloorMatrix4;
         picker = new ObjectColorPicker(this);
         picker.setOnObjectPickedListener(onObjectPickedListener);
     }
@@ -109,6 +108,9 @@ public class AugmentedRealityRenderer extends Renderer {
         light.setPosition(3, 2, 4);
         getCurrentScene().addLight(light);
 
+        Vector3 floorPlaneVector = transformFloorMatrix4.getTranslation();
+        double cameraHeight = floorPlaneVector.y;
+        //Log.d("AGn", String.format("cameraHeight: x - %f, y - %f, z - %f", floorPlaneVector.x, floorPlaneVector.y, floorPlaneVector.z));
 
         if (fixtures != null && isFixturesVisible) {
             for (Fixture fixture : fixtures) {
@@ -119,7 +121,7 @@ public class AugmentedRealityRenderer extends Renderer {
                 material.setDiffuseMethod(new DiffuseMethod.Lambert());
 
                 RectangularPrism rect = new RectangularPrism((float) fixture.getWidth() / 100, (float) fixture.getHeight() / 100, (float) fixture.getDepth() / 100);
-                rect.setPosition((double) fixture.getPosition().x / 100, -0.3, (double) fixture.getPosition().y / 100);
+                rect.setPosition((double) fixture.getPosition().x / 100, cameraHeight, (double) fixture.getPosition().y / 100);
                 rect.setMaterial(material);
                 getCurrentScene().addChild(rect);
                 objects.add(rect);
@@ -160,11 +162,6 @@ public class AugmentedRealityRenderer extends Renderer {
         getCurrentCamera().setRotation(quaternion.conjugate());
         getCurrentCamera().setPosition(translation[0], translation[1], translation[2]);
         //Log.d("AGn", String.format("Translation: x - %f, y - %f, z - %f", translation[0], translation[1], translation[2]));
-    }
-
-    public void setCameraHeightFromFloor(float height) {
-        this.cameraHeight = height;
-        mObjectPoseUpdated = true;
     }
 
     /**
@@ -237,21 +234,5 @@ public class AugmentedRealityRenderer extends Renderer {
 
     public void getObjectAt(float x, float y) {
         picker.getObjectAt(x, y);
-    }
-
-    @Override
-    protected void onRender(long elapsedRealTime, double deltaTime) {
-        synchronized (this) {
-            if (mObjectPoseUpdated) {
-                for (Object3D object3D : objects) {
-                    // Place the 3D object in the location of the detected plane.
-                    Vector3 vector3 = object3D.getPosition();
-                    object3D.setPosition(new Vector3(vector3.x, -cameraHeight, vector3.z));
-                }
-                mObjectPoseUpdated = false;
-            }
-        }
-
-        super.onRender(elapsedRealTime, deltaTime);
     }
 }
