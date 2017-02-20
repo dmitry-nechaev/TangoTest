@@ -218,15 +218,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private void bindTangoAndResumeSurface() {
         if (hasCameraPermission()) {
             bindTangoService();
-
-            //mSurfaceView.onResume();
-
-            //setAndroidOrientation();
-
-            // Set render mode to RENDERMODE_CONTINUOUSLY to force getting onDraw callbacks until
-            // the Tango service is properly set-up and we start getting onFrameAvailable callbacks.
-            //mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-            // Check and request camera permission at run time.
         } else {
             requestCameraPermission();
         }
@@ -238,7 +229,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private void bindTangoService() {
         // Since we call mTango.disconnect() in onStop, this will unbind Tango Service, so every
         // time when onStart gets called, we should create a new Tango object.
-        mTango = new Tango(MainActivity.this, new Runnable() {
+        mTango = new Tango(getApplicationContext(), new Runnable() {
             // Pass in a Runnable to be called from UI thread when Tango is ready, this Runnable
             // will be running on a new thread.
             // When Tango is ready, we can call Tango functions safely here only when there
@@ -345,7 +336,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
                     if (!isLocalized) {
                         isLocalized = true;
-                        Log.d("AGn", "LOCALIZED");
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -357,7 +347,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                Log.d("AGn", "Start thread floor definition");
                                 double cloudDataTimestamp = 0.0;
                                 while (true) {
                                     TangoPointCloudData cloudData = tangoPointCloudManager.getLatestPointCloud();
@@ -392,7 +381,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
                                         cloudDataTimestamp = cloudData.timestamp;
                                     }
                                 }
-                                Log.d("AGn", "End thread floor definition");
                             }
                         }).start();
                     }
@@ -653,11 +641,12 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private void initFixtures() {
         fixtures = new ArrayList<>();
 
-        fixtures.add(new Fixture(new Point(100, -50), 400, 40, 200, Color.WHITE));
-        fixtures.add(new Fixture(new Point(-100, -50), 200, 40, 200, Color.WHITE));
-        fixtures.add(new Fixture(new Point(-100, 250), 400, 400, 40, Color.WHITE));
-        fixtures.add(new Fixture(new Point(300, 1250), 400, 400, 40, Color.WHITE));
-        fixtures.add(new Fixture(new Point(-200, -670), 400, 600, 25, Color.WHITE));
+        int fixtureColor = Color.WHITE;
+        fixtures.add(new Fixture(new Point(100, -50), 400, 40, 200, fixtureColor));
+        fixtures.add(new Fixture(new Point(-100, -50), 200, 40, 200, fixtureColor));
+        fixtures.add(new Fixture(new Point(-100, 250), 400, 400, 40, fixtureColor));
+        fixtures.add(new Fixture(new Point(300, 1250), 400, 400, 40, fixtureColor));
+        fixtures.add(new Fixture(new Point(-200, -670), 400, 600, 25, fixtureColor));
     }
 
     @Override
@@ -682,32 +671,18 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
     @Override
     public void onObjectPicked(@NonNull Object3D object) {
-        changeMarkerColor(Color.GREEN);
-
-        Material material = new Material();
-        material.enableLighting(true);
-        material.setDiffuseMethod(new DiffuseMethod.Lambert());
-        if (previousObject != null) {
-            material.setColor(Color.WHITE);
-            previousObject.setMaterial(material);
+        if (object != null) {
+            changeMarkerColor(Color.GREEN);
+            previousObject = object;
+        } else {
+            onNoObjectPicked();
         }
-        material.setColor(Color.GREEN);
-        object.setMaterial(material);
-
-        previousObject = object;
     }
 
     @Override
     public void onNoObjectPicked() {
         changeMarkerColor(Color.RED);
 
-        if (previousObject != null) {
-            Material material = new Material();
-            material.enableLighting(true);
-            material.setDiffuseMethod(new DiffuseMethod.Lambert());
-            material.setColor(Color.WHITE);
-            previousObject.setMaterial(material);
-        }
         previousObject = null;
     }
 
