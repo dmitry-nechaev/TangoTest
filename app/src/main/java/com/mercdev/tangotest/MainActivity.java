@@ -43,7 +43,6 @@ import com.projecttango.tangosupport.TangoSupport;
 import org.rajawali3d.Object3D;
 import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
-import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.scene.ASceneFrameCallback;
 import org.rajawali3d.util.OnObjectPickedListener;
 import org.rajawali3d.view.SurfaceView;
@@ -359,8 +358,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
             @Override
             public void onPointCloudAvailable(TangoPointCloudData pointCloud) {
                 if (pointCloud != null && !isFloorPlaneDefined) {
-                    float cameraHeight = (float)FloorPlaneDefinitionHelper.getCameraHeightFromFloor(pointCloud, mRgbTimestampGlThread, mColorCameraToDisplayAndroidRotation);
-                    //Log.d("AGn", "Height of camera is " + cameraHeight);
+                    float cameraHeight = (float) FloorPlaneDefinitionHelper.getCameraHeightFromFloor(pointCloud, mRgbTimestampGlThread, mColorCameraToDisplayAndroidRotation);
                     if (cameraHeight != 0.0) {
                         mRenderer.setCameraHeightFromFloor(cameraHeight);
                         isFloorPlaneDefined = true;

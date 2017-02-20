@@ -38,21 +38,6 @@ public class FloorPlaneDefinitionHelper {
                     TangoSupport.fitPlaneModelNearPoint(pointCloud,
                             identityTranslation, identityRotation, uv[0], uv[1],
                             depthTcolorPose.translation, depthTcolorPose.rotation);
-
-
-            /*// Get the transform from depth camera to OpenGL world at the timestamp of the cloud.
-            TangoSupport.TangoMatrixTransformData transform =
-                    TangoSupport.getMatrixTransformAtTime(pointCloud.timestamp,
-                            TangoPoseData.COORDINATE_FRAME_AREA_DESCRIPTION,
-                            TangoPoseData.COORDINATE_FRAME_CAMERA_DEPTH,
-                            TangoSupport.TANGO_SUPPORT_ENGINE_OPENGL,
-                            TangoSupport.TANGO_SUPPORT_ENGINE_TANGO, 0);
-            if (transform.statusCode == TangoPoseData.POSE_VALID) {
-                float[] openGlTPlane = calculatePlaneTransform(
-                        intersectionPointPlaneModelPair.intersectionPoint,
-                        intersectionPointPlaneModelPair.planeModel, transform.matrix);
-
-                return new Matrix4(openGlTPlane);*/
             if (intersectionPointPlaneModelPair != null) {
                 return intersectionPointPlaneModelPair.intersectionPoint[2];
             }
