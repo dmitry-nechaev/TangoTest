@@ -113,19 +113,22 @@ public class AugmentedRealityRenderer extends Renderer {
 
 
         if (fixtures != null && isFixturesVisible) {
+            int position = 0;
             for (Fixture fixture : fixtures) {
 
                 Material material = new Material();
-                material.setColor(Color.WHITE);
                 material.enableLighting(true);
                 material.setDiffuseMethod(new DiffuseMethod.Lambert());
 
                 RectangularPrism rect = new RectangularPrism((float) fixture.getWidth() / 100, (float) fixture.getHeight() / 100, (float) fixture.getDepth() / 100);
                 rect.setPosition((double) fixture.getPosition().x / 100, -0.3, (double) fixture.getPosition().y / 100);
                 rect.setMaterial(material);
+                rect.setColor(fixture.getColor());
+                rect.setName("Fixture" + position);
                 getCurrentScene().addChild(rect);
                 objects.add(rect);
                 picker.registerObject(rect);
+                position++;
             }
         }
     }

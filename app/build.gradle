@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.rajawali3d:rajawali:1.1.668@aar'
+    compile 'org.rajawali3d:rajawali:1.1.777@aar'
     compile (name: 'tango_support_java_lib', ext: 'aar')
     compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {

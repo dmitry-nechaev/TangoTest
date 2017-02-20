@@ -236,7 +236,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private void bindTangoService() {
         // Since we call mTango.disconnect() in onStop, this will unbind Tango Service, so every
         // time when onStart gets called, we should create a new Tango object.
-        mTango = new Tango(MainActivity.this, new Runnable() {
+        mTango = new Tango(getApplicationContext(), new Runnable() {
             // Pass in a Runnable to be called from UI thread when Tango is ready, this Runnable
             // will be running on a new thread.
             // When Tango is ready, we can call Tango functions safely here only when there
@@ -688,11 +688,12 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private void initFixtures() {
         fixtures = new ArrayList<>();
 
-        fixtures.add(new Fixture(new Point(100, -50), 400, 40, 200, Color.WHITE));
-        fixtures.add(new Fixture(new Point(-100, -50), 200, 40, 200, Color.WHITE));
-        fixtures.add(new Fixture(new Point(-100, 250), 400, 400, 40, Color.WHITE));
-        fixtures.add(new Fixture(new Point(300, 1250), 400, 400, 40, Color.WHITE));
-        fixtures.add(new Fixture(new Point(-200, -670), 400, 600, 25, Color.WHITE));
+        int fixtureColor = Color.WHITE;
+        fixtures.add(new Fixture(new Point(100, -50), 400, 40, 200, fixtureColor));
+        fixtures.add(new Fixture(new Point(-100, -50), 200, 40, 200, fixtureColor));
+        fixtures.add(new Fixture(new Point(-100, 250), 400, 400, 40, fixtureColor));
+        fixtures.add(new Fixture(new Point(300, 1250), 400, 400, 40, fixtureColor));
+        fixtures.add(new Fixture(new Point(-200, -670), 400, 600, 25, fixtureColor));
     }
 
     @Override
@@ -719,16 +720,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     public void onObjectPicked(@NonNull Object3D object) {
         changeMarkerColor(Color.GREEN);
 
-        Material material = new Material();
-        material.enableLighting(true);
-        material.setDiffuseMethod(new DiffuseMethod.Lambert());
-        if (previousObject != null) {
-            material.setColor(Color.WHITE);
-            previousObject.setMaterial(material);
-        }
-        material.setColor(Color.GREEN);
-        object.setMaterial(material);
-
         previousObject = object;
     }
 
@@ -736,13 +727,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     public void onNoObjectPicked() {
         changeMarkerColor(Color.RED);
 
-        if (previousObject != null) {
-            Material material = new Material();
-            material.enableLighting(true);
-            material.setDiffuseMethod(new DiffuseMethod.Lambert());
-            material.setColor(Color.WHITE);
-            previousObject.setMaterial(material);
-        }
         previousObject = null;
     }
 
