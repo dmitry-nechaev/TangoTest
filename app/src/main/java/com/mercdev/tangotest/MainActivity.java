@@ -41,8 +41,6 @@ import com.google.atap.tangoservice.TangoXyzIjData;
 import com.projecttango.tangosupport.TangoSupport;
 
 import org.rajawali3d.Object3D;
-import org.rajawali3d.materials.Material;
-import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.scene.ASceneFrameCallback;
 import org.rajawali3d.util.OnObjectPickedListener;
 import org.rajawali3d.view.SurfaceView;
@@ -718,9 +716,12 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
     @Override
     public void onObjectPicked(@NonNull Object3D object) {
-        changeMarkerColor(Color.GREEN);
-
-        previousObject = object;
+        if (object != null) {
+            changeMarkerColor(Color.GREEN);
+            previousObject = object;
+        } else {
+            onNoObjectPicked();
+        }
     }
 
     @Override
