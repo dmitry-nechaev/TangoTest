@@ -125,8 +125,11 @@ public class AugmentedRealityRenderer extends Renderer {
         if (fixtures != null && isFixturesVisible) {
             int position = 0;
             for (Fixture fixture : fixtures) {
-                RectangularPrism rect = new RectangularPrism((float) fixture.getWidth() / 100, (float) fixture.getHeight() / 100, (float) fixture.getDepth() / 100);
-                rect.setPosition((double) fixture.getPosition().x / 100, cameraHeight, (double) fixture.getPosition().y / 100);
+                float width = (float) fixture.getWidth() / 100f;
+                float height = (float) fixture.getHeight() / 100f;
+                float depth = (float) fixture.getDepth() / 100f;
+                RectangularPrism rect = new RectangularPrism(width, height, depth);
+                rect.setPosition((double) fixture.getPosition().x / 100f + width * 0.5f, cameraHeight, (double) fixture.getPosition().y / 100f + depth * 0.5f);
                 rect.setMaterial(material);
                 rect.setColor(fixture.getColor());
                 rect.setName("Fixture" + position);
