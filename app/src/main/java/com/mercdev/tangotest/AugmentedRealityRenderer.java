@@ -16,12 +16,9 @@
 package com.mercdev.tangotest;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.opengl.GLES20;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.MotionEvent;
-import android.view.Surface;
 
 import com.google.atap.tangoservice.TangoPoseData;
 import com.projecttango.tangosupport.TangoSupport;
@@ -37,11 +34,9 @@ import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.RectangularPrism;
 import org.rajawali3d.primitives.ScreenQuad;
-import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.renderer.Renderer;
 import org.rajawali3d.util.ObjectColorPicker;
 import org.rajawali3d.util.OnObjectPickedListener;
-import org.rajawali3d.util.RayPicker;
 
 import java.util.ArrayList;
 
@@ -70,14 +65,14 @@ public class AugmentedRealityRenderer extends Renderer {
 
     private boolean isFixturesVisible = true;
 
-    private RayPicker picker;
-    //private ObjectColorPicker picker;
+    //private RayPicker picker;
+    private ObjectColorPicker picker;
 
     public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener, Matrix4 transformFloorMatrix4) {
         super(context);
         this.transformFloorMatrix4 = transformFloorMatrix4;
-        picker = new RayPicker(this);
-        //picker = new ObjectColorPicker(this);
+        //picker = new RayPicker(this);
+        picker = new ObjectColorPicker(this);
         picker.setOnObjectPickedListener(onObjectPickedListener);
     }
 
@@ -114,7 +109,6 @@ public class AugmentedRealityRenderer extends Renderer {
         Vector3 floorPlaneVector = transformFloorMatrix4.getTranslation();
         double cameraHeight = floorPlaneVector.y;
 
-
         Material material = new Material();
         material.enableLighting(true);
         material.setDiffuseMethod(new DiffuseMethod.Lambert());
@@ -135,7 +129,7 @@ public class AugmentedRealityRenderer extends Renderer {
                 rect.setDrawingMode(GLES20.GL_TRIANGLES);
                 getCurrentScene().addChild(rect);
                 objects.add(rect);
-                //picker.registerObject(rect);
+                picker.registerObject(rect);
                 position++;
             }
         }

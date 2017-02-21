@@ -18,8 +18,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Display;
-import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -34,7 +32,6 @@ import com.google.atap.tangoservice.TangoConfig;
 import com.google.atap.tangoservice.TangoCoordinateFramePair;
 import com.google.atap.tangoservice.TangoErrorException;
 import com.google.atap.tangoservice.TangoEvent;
-import com.google.atap.tangoservice.TangoException;
 import com.google.atap.tangoservice.TangoInvalidException;
 import com.google.atap.tangoservice.TangoOutOfDateException;
 import com.google.atap.tangoservice.TangoPointCloudData;
@@ -44,19 +41,15 @@ import com.projecttango.tangosupport.TangoPointCloudManager;
 import com.projecttango.tangosupport.TangoSupport;
 
 import org.rajawali3d.Object3D;
-import org.rajawali3d.materials.Material;
-import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.scene.ASceneFrameCallback;
 import org.rajawali3d.util.OnObjectPickedListener;
 import org.rajawali3d.view.SurfaceView;
 
-import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MainActivity extends Activity implements View.OnTouchListener, OnObjectPickedListener {
+public class MainActivity extends Activity implements OnObjectPickedListener {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int INVALID_TEXTURE_ID = 0;
 
@@ -93,6 +86,39 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private boolean isCreateSurfaceAndScene = false;
 
     private int mDisplayRotation;
+
+    /**
+     * Use Tango camera intrinsics to calculate the projection Matrix for the Rajawali scene.
+     */
+    private static float[] projectionMatrixFromCameraIntrinsics(TangoCameraIntrinsics intrinsics) {
+        // Uses frustumM to create a projection matrix taking into account calibrated camera
+        // intrinsic parameter.
+        // Reference: http://ksimek.github.io/2013/06/03/calibrated_cameras_in_opengl/
+        float near = 0.1f;
+        float far = 100;
+
+        double cx = intrinsics.cx;
+        double cy = intrinsics.cy;
+        double width = intrinsics.width;
+        double height = intrinsics.height;
+        double fx = intrinsics.fx;
+        double fy = intrinsics.fy;
+
+        double xscale = near / fx;
+        double yscale = near / fy;
+
+        double xoffset = (cx - (width / 2.0)) * xscale;
+        // Color camera's coordinates has y pointing downwards so we negate this term.
+        double yoffset = -(cy - (height / 2.0)) * yscale;
+
+        float m[] = new float[16];
+        Matrix.frustumM(m, 0,
+                (float) (xscale * -width / 2.0 - xoffset),
+                (float) (xscale * width / 2.0 - xoffset),
+                (float) (yscale * -height / 2.0 - yoffset),
+                (float) (yscale * height / 2.0 - yoffset), near, far);
+        return m;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -563,43 +589,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
         mRenderer.updateColorCameraTextureUvGlThread(mDisplayRotation);
         mSurfaceView.setSurfaceRenderer(mRenderer);
-        mSurfaceView.setOnTouchListener(this);
     }
-
-
-    /**
-     * Use Tango camera intrinsics to calculate the projection Matrix for the Rajawali scene.
-     */
-    private static float[] projectionMatrixFromCameraIntrinsics(TangoCameraIntrinsics intrinsics) {
-        // Uses frustumM to create a projection matrix taking into account calibrated camera
-        // intrinsic parameter.
-        // Reference: http://ksimek.github.io/2013/06/03/calibrated_cameras_in_opengl/
-        float near = 0.1f;
-        float far = 100;
-
-        double cx = intrinsics.cx;
-        double cy = intrinsics.cy;
-        double width = intrinsics.width;
-        double height = intrinsics.height;
-        double fx = intrinsics.fx;
-        double fy = intrinsics.fy;
-
-        double xscale = near / fx;
-        double yscale = near / fy;
-
-        double xoffset = (cx - (width / 2.0)) * xscale;
-        // Color camera's coordinates has y pointing downwards so we negate this term.
-        double yoffset = -(cy - (height / 2.0)) * yscale;
-
-        float m[] = new float[16];
-        Matrix.frustumM(m, 0,
-                (float) (xscale * -width / 2.0 - xoffset),
-                (float) (xscale * width / 2.0 - xoffset),
-                (float) (yscale * -height / 2.0 - yoffset),
-                (float) (yscale * height / 2.0 - yoffset), near, far);
-        return m;
-    }
-
 
     /**
      * Set the color camera background texture rotation and save the camera to display rotation.
@@ -681,14 +671,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
                 checkPermissionsAndBindTango();
             }
         }
-    }
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            mRenderer.getObjectAt(event.getX(), event.getY());
-        }
-        return super.onTouchEvent(event);
     }
 
     @Override
