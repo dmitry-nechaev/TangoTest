@@ -7,6 +7,7 @@
     <string name="permission_camera">"Camera permission needed!"</string>
 
     <string name="process_localization">"The process of localization..."</string>
+    <string name="process_floor_definition">"The process of floor definition..."</string>
 
     <string name="fixture_dialog_nothing_targeted">Nothing targeted</string>
     <string name="fixture_dialog_nothing_targeted_hint">(Point the target at a map object to make changes)</string>

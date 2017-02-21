@@ -8,7 +8,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Point;
-import android.hardware.Camera;
+import android.graphics.PointF;
 import android.hardware.display.DisplayManager;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.atap.tangoservice.Tango;
@@ -33,18 +34,25 @@ import com.google.atap.tangoservice.TangoConfig;
 import com.google.atap.tangoservice.TangoCoordinateFramePair;
 import com.google.atap.tangoservice.TangoErrorException;
 import com.google.atap.tangoservice.TangoEvent;
+import com.google.atap.tangoservice.TangoException;
 import com.google.atap.tangoservice.TangoInvalidException;
 import com.google.atap.tangoservice.TangoOutOfDateException;
 import com.google.atap.tangoservice.TangoPointCloudData;
 import com.google.atap.tangoservice.TangoPoseData;
 import com.google.atap.tangoservice.TangoXyzIjData;
+import com.projecttango.tangosupport.TangoPointCloudManager;
 import com.projecttango.tangosupport.TangoSupport;
 
 import org.rajawali3d.Object3D;
+import org.rajawali3d.materials.Material;
+import org.rajawali3d.materials.methods.DiffuseMethod;
+import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.scene.ASceneFrameCallback;
 import org.rajawali3d.util.OnObjectPickedListener;
 import org.rajawali3d.view.SurfaceView;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -57,6 +65,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
     private static final String CAMERA_PERMISSION = Manifest.permission.CAMERA;
     private static final int CAMERA_PERMISSION_CODE = 0;
+    private static final PointF FLOOR_DEFINITION_POINT = new PointF(0.5f, 0.75f);
 
     private SurfaceView mSurfaceView;
     private FrameLayout mapContainer;
@@ -65,12 +74,12 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private View marker;
 
     private AugmentedRealityRenderer mRenderer;
-    private TangoCameraIntrinsics mIntrinsics;
     private Tango mTango;
     private TangoConfig mConfig;
     private boolean mIsConnected = false;
     private double mCameraPoseTimestamp = 0;
     private Object3D previousObject;
+    private TangoPointCloudManager tangoPointCloudManager;
 
     // Texture rendering related fields.
     // NOTE: Naming indicates which thread is in charge of updating this variable.
@@ -78,10 +87,9 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private AtomicBoolean mIsFrameAvailableTangoThread = new AtomicBoolean(false);
     private double mRgbTimestampGlThread;
 
-    private int mColorCameraToDisplayAndroidRotation = 0;
-
     private boolean isLocalized = false;
-    private boolean isFloorPlaneDefined = false;
+
+    private int mDisplayRotation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +106,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
                 @Override
                 public void onDisplayChanged(int displayId) {
                     synchronized (this) {
-                        setAndroidOrientation();
+                        setDisplayRotation();
                     }
                 }
 
@@ -110,11 +118,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
         initFixtures();
 
-        mSurfaceView = new SurfaceView(this);
-        setupRenderer();
-
-        FrameLayout surfaceContainer = (FrameLayout) findViewById(R.id.surface_container);
-        surfaceContainer.addView(mSurfaceView, 0, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        tangoPointCloudManager = new TangoPointCloudManager();
 
         ImageButton homeButton = (ImageButton) findViewById(R.id.home);
         homeButton.setOnClickListener(new View.OnClickListener() {
@@ -212,15 +216,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private void bindTangoAndResumeSurface() {
         if (hasCameraPermission()) {
             bindTangoService();
-
-            mSurfaceView.onResume();
-
-            setAndroidOrientation();
-
-            // Set render mode to RENDERMODE_CONTINUOUSLY to force getting onDraw callbacks until
-            // the Tango service is properly set-up and we start getting onFrameAvailable callbacks.
-            mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-            // Check and request camera permission at run time.
         } else {
             requestCameraPermission();
         }
@@ -248,6 +243,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
                         mTango.connect(mConfig);
                         startupTango();
                         mIsConnected = true;
+                        setDisplayRotation();
                     } catch (TangoOutOfDateException e) {
                         Log.e(TAG, getString(R.string.exception_out_of_date), e);
                     } catch (TangoErrorException e) {
@@ -330,7 +326,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
                 TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE));
 
 
-        mTango.connectListener(framePairs, new Tango.OnTangoUpdateListener() {
+        mTango.connectListener(framePairs, new Tango.TangoUpdateCallback() {
             @Override
             public void onPoseAvailable(final TangoPoseData pose) {
                 if (pose.baseFrame == TangoPoseData.COORDINATE_FRAME_AREA_DESCRIPTION
@@ -338,15 +334,53 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
                     if (!isLocalized) {
                         isLocalized = true;
-                        if (isFloorPlaneDefined) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    FrameLayout frame = (FrameLayout) findViewById(R.id.process_localize_cover);
-                                    frame.setVisibility(View.GONE);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                TextView textView = (TextView) findViewById(R.id.cover_frame_text);
+                                textView.setText(getString(R.string.process_floor_definition));
+                            }
+                        });
+
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                double cloudDataTimestamp = 0.0;
+                                while (true) {
+                                    TangoPointCloudData cloudData = tangoPointCloudManager.getLatestPointCloud();
+                                    if (cloudDataTimestamp < cloudData.timestamp) {
+                                        final Matrix4 transformFloorMatrix4 = FloorPlaneDefinitionHelper.getTransformFloorMatrix4(FLOOR_DEFINITION_POINT.x, FLOOR_DEFINITION_POINT.y, cloudData,
+                                                                                                                            mRgbTimestampGlThread, mDisplayRotation);
+
+                                        // TODO need add check defined plane is floor
+                                        if (transformFloorMatrix4 != null) {
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+
+                                                    mSurfaceView = new SurfaceView(MainActivity.this);
+                                                    setupRenderer(transformFloorMatrix4);
+
+                                                    FrameLayout surfaceContainer = (FrameLayout) findViewById(R.id.surface_container);
+                                                    surfaceContainer.addView(mSurfaceView, 0, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+                                                    mSurfaceView.onResume();
+
+                                                    mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+
+                                                    FrameLayout coverFrame = (FrameLayout) findViewById(R.id.cover_frame);
+                                                    coverFrame.setVisibility(View.GONE);
+                                                }
+                                            });
+
+                                            break;
+                                        }
+
+                                        cloudDataTimestamp = cloudData.timestamp;
+                                    }
                                 }
-                            });
-                        }
+                            }
+                        }).start();
                     }
                 }
             }
@@ -358,22 +392,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
             @Override
             public void onPointCloudAvailable(TangoPointCloudData pointCloud) {
-                if (pointCloud != null && !isFloorPlaneDefined) {
-                    float cameraHeight = (float) FloorPlaneDefinitionHelper.getCameraHeightFromFloor(pointCloud, mRgbTimestampGlThread, mColorCameraToDisplayAndroidRotation);
-                    if (cameraHeight != 0.0) {
-                        mRenderer.setCameraHeightFromFloor(cameraHeight);
-                        isFloorPlaneDefined = true;
-                        if (isLocalized) {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    FrameLayout frame = (FrameLayout) findViewById(R.id.process_localize_cover);
-                                    frame.setVisibility(View.GONE);
-                                }
-                            });
-                        }
-                    }
-                }
+                tangoPointCloudManager.updatePointCloud(pointCloud);
             }
 
             @Override
@@ -404,20 +423,17 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
                 }
             }
         });
-
-        // Obtain the intrinsic parameters of the color camera.
-        mIntrinsics = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
     }
 
     /**
      * Connects the view and renderer to the color camara and callbacks.
      */
-    private void setupRenderer() {
+    private void setupRenderer(Matrix4 transformFloorMatrix4) {
         // Register a Rajawali Scene Frame Callback to update the scene camera pose whenever a new
         // RGB frame is rendered.
         // (@see https://github.com/Rajawali/Rajawali/wiki/Scene-Frame-Callbacks)
 
-        mRenderer = new AugmentedRealityRenderer(this, this);
+        mRenderer = new AugmentedRealityRenderer(this, this, transformFloorMatrix4);
         mRenderer.getCurrentScene().registerFrameCallback(new ASceneFrameCallback() {
             @Override
             public void onPreFrame(long sceneTime, double deltaTime) {
@@ -436,10 +452,14 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
                         // Set-up scene camera projection to match RGB camera intrinsics.
                         if (!mRenderer.isSceneCameraConfigured()) {
+                            TangoCameraIntrinsics intrinsics =
+                                    TangoSupport.getCameraIntrinsicsBasedOnDisplayRotation(
+                                            TangoCameraIntrinsics.TANGO_CAMERA_COLOR,
+                                            mDisplayRotation);
                             mRenderer.setProjectionMatrix(
-                                    projectionMatrixFromCameraIntrinsics(mIntrinsics,
-                                            mColorCameraToDisplayAndroidRotation));
+                                    projectionMatrixFromCameraIntrinsics(intrinsics));
                         }
+
                         // Connect the camera texture to the OpenGL Texture if necessary
                         // NOTE: When the OpenGL context is recycled, Rajawali may re-generate the
                         // texture with a different ID.
@@ -472,7 +492,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
                                     TangoPoseData.COORDINATE_FRAME_AREA_DESCRIPTION,
                                     TangoPoseData.COORDINATE_FRAME_CAMERA_COLOR,
                                     TangoSupport.TANGO_SUPPORT_ENGINE_OPENGL,
-                                    mColorCameraToDisplayAndroidRotation);
+                                    mDisplayRotation);
                             if (lastFramePose.statusCode == TangoPoseData.POSE_VALID) {
                                 // Update the camera pose from the renderer
                                 mRenderer.updateRenderCameraPose(lastFramePose);
@@ -518,117 +538,52 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
             }
         });
 
+        mRenderer.updateColorCameraTextureUvGlThread(mDisplayRotation);
         mSurfaceView.setSurfaceRenderer(mRenderer);
         mSurfaceView.setOnTouchListener(this);
     }
 
-    private static int getColorCameraToDisplayAndroidRotation(int displayRotation,
-                                                              int cameraRotation) {
-        int cameraRotationNormalized = 0;
-        switch (cameraRotation) {
-            case 90:
-                cameraRotationNormalized = 1;
-                break;
-            case 180:
-                cameraRotationNormalized = 2;
-                break;
-            case 270:
-                cameraRotationNormalized = 3;
-                break;
-            default:
-                cameraRotationNormalized = 0;
-                break;
-        }
-        int ret = displayRotation - cameraRotationNormalized;
-        if (ret < 0) {
-            ret += 4;
-        }
-        return ret;
-    }
 
     /**
      * Use Tango camera intrinsics to calculate the projection Matrix for the Rajawali scene.
-     *
-     * @param intrinsics camera instrinsics for computing the project matrix.
-     * @param rotation   the relative rotation between the camera intrinsics and display glContext.
      */
-    private static float[] projectionMatrixFromCameraIntrinsics(TangoCameraIntrinsics intrinsics,
-                                                                int rotation) {
-        // Adjust camera intrinsics according to rotation
-        float cx = (float) intrinsics.cx;
-        float cy = (float) intrinsics.cy;
-        float width = (float) intrinsics.width;
-        float height = (float) intrinsics.height;
-        float fx = (float) intrinsics.fx;
-        float fy = (float) intrinsics.fy;
-
-        switch (rotation) {
-            case Surface.ROTATION_90:
-                cx = (float) intrinsics.cy;
-                cy = (float) intrinsics.width - (float) intrinsics.cx;
-                width = (float) intrinsics.height;
-                height = (float) intrinsics.width;
-                fx = (float) intrinsics.fy;
-                fy = (float) intrinsics.fx;
-                break;
-            case Surface.ROTATION_180:
-                cx = (float) intrinsics.width - cx;
-                cy = (float) intrinsics.height - cy;
-                break;
-            case Surface.ROTATION_270:
-                cx = (float) intrinsics.height - (float) intrinsics.cy;
-                cy = (float) intrinsics.cx;
-                width = (float) intrinsics.height;
-                height = (float) intrinsics.width;
-                fx = (float) intrinsics.fy;
-                fy = (float) intrinsics.fx;
-                break;
-            default:
-                break;
-        }
-
+    private static float[] projectionMatrixFromCameraIntrinsics(TangoCameraIntrinsics intrinsics) {
         // Uses frustumM to create a projection matrix taking into account calibrated camera
         // intrinsic parameter.
         // Reference: http://ksimek.github.io/2013/06/03/calibrated_cameras_in_opengl/
         float near = 0.1f;
         float far = 100;
 
-        float xScale = near / fx;
-        float yScale = near / fy;
-        float xOffset = (cx - (width / 2.0f)) * xScale;
+        double cx = intrinsics.cx;
+        double cy = intrinsics.cy;
+        double width = intrinsics.width;
+        double height = intrinsics.height;
+        double fx = intrinsics.fx;
+        double fy = intrinsics.fy;
+
+        double xscale = near / fx;
+        double yscale = near / fy;
+
+        double xoffset = (cx - (width / 2.0)) * xscale;
         // Color camera's coordinates has y pointing downwards so we negate this term.
-        float yOffset = -(cy - (height / 2.0f)) * yScale;
+        double yoffset = -(cy - (height / 2.0)) * yscale;
 
         float m[] = new float[16];
         Matrix.frustumM(m, 0,
-                xScale * (float) -width / 2.0f - xOffset,
-                xScale * (float) width / 2.0f - xOffset,
-                yScale * (float) -height / 2.0f - yOffset,
-                yScale * (float) height / 2.0f - yOffset,
-                near, far);
+                (float) (xscale * -width / 2.0 - xoffset),
+                (float) (xscale * width / 2.0 - xoffset),
+                (float) (yscale * -height / 2.0 - yoffset),
+                (float) (yscale * height / 2.0 - yoffset), near, far);
         return m;
     }
+
 
     /**
      * Set the color camera background texture rotation and save the camera to display rotation.
      */
-    private void setAndroidOrientation() {
+    private void setDisplayRotation() {
         Display display = getWindowManager().getDefaultDisplay();
-        Camera.CameraInfo colorCameraInfo = new Camera.CameraInfo();
-        Camera.getCameraInfo(COLOR_CAMERA_ID, colorCameraInfo);
-
-        mColorCameraToDisplayAndroidRotation =
-                getColorCameraToDisplayAndroidRotation(display.getRotation(),
-                        colorCameraInfo.orientation);
-        // Run this in OpenGL thread.
-        if (mSurfaceView != null) {
-            mSurfaceView.queueEvent(new Runnable() {
-                @Override
-                public void run() {
-                    mRenderer.updateColorCameraTextureUvGlThread(mColorCameraToDisplayAndroidRotation);
-                }
-            });
-        }
+        mDisplayRotation = display.getRotation();
     }
 
     /**

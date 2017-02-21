@@ -24,6 +24,7 @@ import android.view.MotionEvent;
 import android.view.Surface;
 
 import com.google.atap.tangoservice.TangoPoseData;
+import com.projecttango.tangosupport.TangoSupport;
 
 import org.rajawali3d.Object3D;
 import org.rajawali3d.lights.DirectionalLight;
@@ -56,9 +57,6 @@ public class AugmentedRealityRenderer extends Renderer {
     private static final String TAG = AugmentedRealityRenderer.class.getSimpleName();
 
     private float[] textureCoords0 = new float[]{0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.0F};
-    private float[] textureCoords270 = new float[]{1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F};
-    private float[] textureCoords180 = new float[]{1.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 1.0F};
-    private float[] textureCoords90 = new float[]{0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F};
 
     // Rajawali texture used to render the Tango color camera.
     private ATexture mTangoCameraTexture;
@@ -68,17 +66,16 @@ public class AugmentedRealityRenderer extends Renderer {
 
     private ScreenQuad mBackgroundQuad;
     private ArrayList<Object3D> objects = new ArrayList<>();
-
-    private float cameraHeight = 0.0f;
-    private boolean mObjectPoseUpdated = false;
+    private Matrix4 transformFloorMatrix4;
 
     private boolean isFixturesVisible = true;
 
     private RayPicker picker;
     //private ObjectColorPicker picker;
 
-    public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener) {
+    public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener, Matrix4 transformFloorMatrix4) {
         super(context);
+        this.transformFloorMatrix4 = transformFloorMatrix4;
         picker = new RayPicker(this);
         //picker = new ObjectColorPicker(this);
         picker.setOnObjectPickedListener(onObjectPickedListener);
@@ -114,6 +111,9 @@ public class AugmentedRealityRenderer extends Renderer {
         light.setPosition(3, 2, 4);
         getCurrentScene().addLight(light);
 
+        Vector3 floorPlaneVector = transformFloorMatrix4.getTranslation();
+        double cameraHeight = floorPlaneVector.y;
+        //Log.d("AGn", String.format("cameraHeight: x - %f, y - %f, z - %f", floorPlaneVector.x, floorPlaneVector.y, floorPlaneVector.z));
 
 
         Material material = new Material();
@@ -126,7 +126,7 @@ public class AugmentedRealityRenderer extends Renderer {
             int position = 0;
             for (Fixture fixture : fixtures) {
                 RectangularPrism rect = new RectangularPrism((float) fixture.getWidth() / 100, (float) fixture.getHeight() / 100, (float) fixture.getDepth() / 100);
-                rect.setPosition((double) fixture.getPosition().x / 100, -0.3, (double) fixture.getPosition().y / 100);
+                rect.setPosition((double) fixture.getPosition().x / 100, cameraHeight, (double) fixture.getPosition().y / 100);
                 rect.setMaterial(material);
                 rect.setColor(fixture.getColor());
                 rect.setName("Fixture" + position);
@@ -149,20 +149,9 @@ public class AugmentedRealityRenderer extends Renderer {
             mBackgroundQuad = new ScreenQuad();
         }
 
-        switch (rotation) {
-            case Surface.ROTATION_90:
-                mBackgroundQuad.getGeometry().setTextureCoords(textureCoords90, true);
-                break;
-            case Surface.ROTATION_180:
-                mBackgroundQuad.getGeometry().setTextureCoords(textureCoords180, true);
-                break;
-            case Surface.ROTATION_270:
-                mBackgroundQuad.getGeometry().setTextureCoords(textureCoords270, true);
-                break;
-            default:
-                mBackgroundQuad.getGeometry().setTextureCoords(textureCoords0, true);
-                break;
-        }
+        float[] textureCoords =
+                TangoSupport.getVideoOverlayUVBasedOnDisplayRotation(textureCoords0, rotation);
+        mBackgroundQuad.getGeometry().setTextureCoords(textureCoords, true);
         mBackgroundQuad.getGeometry().reload();
     }
 
@@ -182,11 +171,6 @@ public class AugmentedRealityRenderer extends Renderer {
         getCurrentCamera().setRotation(quaternion.conjugate());
         getCurrentCamera().setPosition(translation[0], translation[1], translation[2]);
         //Log.d("AGn", String.format("Translation: x - %f, y - %f, z - %f", translation[0], translation[1], translation[2]));
-    }
-
-    public void setCameraHeightFromFloor(float height) {
-        this.cameraHeight = height;
-        mObjectPoseUpdated = true;
     }
 
     /**
@@ -255,21 +239,5 @@ public class AugmentedRealityRenderer extends Renderer {
 
     public void getObjectAt(float x, float y) {
         picker.getObjectAt(x, y);
-    }
-
-    @Override
-    protected void onRender(long elapsedRealTime, double deltaTime) {
-        synchronized (this) {
-            if (mObjectPoseUpdated) {
-                for (Object3D object3D : objects) {
-                    // Place the 3D object in the location of the detected plane.
-                    Vector3 vector3 = object3D.getPosition();
-                    object3D.setPosition(new Vector3(vector3.x, -cameraHeight, vector3.z));
-                }
-                mObjectPoseUpdated = false;
-            }
-        }
-
-        super.onRender(elapsedRealTime, deltaTime);
     }
 }
