@@ -114,6 +114,7 @@ public class AugmentedRealityRenderer extends Renderer {
         Vector3 floorPlaneVector = transformFloorMatrix4.getTranslation();
         double cameraHeight = floorPlaneVector.y;
 
+
         Material material = new Material();
         material.enableLighting(true);
         material.setDiffuseMethod(new DiffuseMethod.Lambert());
@@ -127,7 +128,7 @@ public class AugmentedRealityRenderer extends Renderer {
                 float height = (float) fixture.getHeight() / 100f;
                 float depth = (float) fixture.getDepth() / 100f;
                 RectangularPrism rect = new RectangularPrism(width, height, depth);
-                rect.setPosition((double) fixture.getPosition().x / 100f + width * 0.5f, cameraHeight, (double) fixture.getPosition().y / 100f + depth * 0.5f);
+                rect.setPosition((double) fixture.getPosition().x / 100f + width * 0.5f, height * 0.5f + cameraHeight, (double) fixture.getPosition().y / 100f + depth * 0.5f);
                 rect.setMaterial(material);
                 rect.setColor(fixture.getColor());
                 rect.setName("Fixture" + position);
