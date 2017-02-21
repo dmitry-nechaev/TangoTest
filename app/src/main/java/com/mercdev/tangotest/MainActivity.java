@@ -69,6 +69,8 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
     private SurfaceView mSurfaceView;
     private FrameLayout mapContainer;
+    private FrameLayout coverFrame;
+    private TextView coverFrameText;
     private Minimap minimap;
     private View nothingTargeted;
     private View marker;
@@ -88,6 +90,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private double mRgbTimestampGlThread;
 
     private boolean isLocalized = false;
+    private boolean isCreateSurfaceAndScene = false;
 
     private int mDisplayRotation;
 
@@ -119,6 +122,9 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
         initFixtures();
 
         tangoPointCloudManager = new TangoPointCloudManager();
+
+        coverFrame = (FrameLayout) findViewById(R.id.cover_frame);
+        coverFrameText = (TextView) coverFrame.findViewById(R.id.cover_frame_text);
 
         ImageButton homeButton = (ImageButton) findViewById(R.id.home);
         homeButton.setOnClickListener(new View.OnClickListener() {
@@ -170,7 +176,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
         super.onStart();
 
         if (ContextCompat.checkSelfPermission(this, Tango.PERMISSIONTYPE_ADF_LOAD_SAVE) == PackageManager.PERMISSION_GRANTED) {
-            bindTangoAndResumeSurface();
+            checkPermissionsAndBindTango();
         } else {
             startActivityForResult(
                     Tango.getRequestPermissionIntent(Tango.PERMISSIONTYPE_ADF_LOAD_SAVE),
@@ -192,7 +198,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
             synchronized (this) {
                 if (mIsConnected) {
                     try {
-                        if (isLocalized) {
+                        if (isLocalized && mTango.getConfig(TangoConfig.CONFIG_TYPE_CURRENT).getBoolean(TangoConfig.KEY_BOOLEAN_LEARNINGMODE)) {
                             String adfUuid = mTango.saveAreaDescription();
                             TangoAreaDescriptionMetaData metadata = mTango.loadAreaDescriptionMetaData(adfUuid);
                             mTango.saveAreaDescriptionMetadata(adfUuid, metadata);
@@ -213,8 +219,9 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
         }
     }
 
-    private void bindTangoAndResumeSurface() {
+    private void checkPermissionsAndBindTango() {
         if (hasCameraPermission()) {
+            showCoverFrame(R.string.process_localization);
             bindTangoService();
         } else {
             requestCameraPermission();
@@ -332,55 +339,71 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
                 if (pose.baseFrame == TangoPoseData.COORDINATE_FRAME_AREA_DESCRIPTION
                         && pose.targetFrame == TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE) {
 
-                    if (!isLocalized) {
+                    if (pose.statusCode == TangoPoseData.POSE_VALID && !isLocalized) {
                         isLocalized = true;
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                TextView textView = (TextView) findViewById(R.id.cover_frame_text);
-                                textView.setText(getString(R.string.process_floor_definition));
-                            }
-                        });
 
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                double cloudDataTimestamp = 0.0;
-                                while (true) {
-                                    TangoPointCloudData cloudData = tangoPointCloudManager.getLatestPointCloud();
-                                    if (cloudDataTimestamp < cloudData.timestamp) {
-                                        final Matrix4 transformFloorMatrix4 = FloorPlaneDefinitionHelper.getTransformFloorMatrix4(FLOOR_DEFINITION_POINT.x, FLOOR_DEFINITION_POINT.y, cloudData,
-                                                                                                                            mRgbTimestampGlThread, mDisplayRotation);
+                        if (!isCreateSurfaceAndScene) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showCoverFrame(R.string.process_floor_definition);
+                                }
+                            });
 
-                                        // TODO need add check defined plane is floor
-                                        if (transformFloorMatrix4 != null) {
-                                            runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    double cloudDataTimestamp = 0.0;
+                                    while (true) {
+                                        TangoPointCloudData cloudData = tangoPointCloudManager.getLatestPointCloud();
+                                        if (cloudDataTimestamp < cloudData.timestamp) {
+                                            final Matrix4 transformFloorMatrix4 = FloorPlaneDefinitionHelper.getTransformFloorMatrix4(FLOOR_DEFINITION_POINT.x, FLOOR_DEFINITION_POINT.y, cloudData,
+                                                    mRgbTimestampGlThread, mDisplayRotation);
 
-                                                    mSurfaceView = new SurfaceView(MainActivity.this);
-                                                    setupRenderer(transformFloorMatrix4);
+                                            // TODO need add check defined plane is floor
+                                            if (transformFloorMatrix4 != null) {
+                                                runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
 
-                                                    FrameLayout surfaceContainer = (FrameLayout) findViewById(R.id.surface_container);
-                                                    surfaceContainer.addView(mSurfaceView, 0, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                                                        mSurfaceView = new SurfaceView(MainActivity.this);
+                                                        setupRenderer(transformFloorMatrix4);
 
-                                                    mSurfaceView.onResume();
+                                                        FrameLayout surfaceContainer = (FrameLayout) findViewById(R.id.surface_container);
+                                                        surfaceContainer.addView(mSurfaceView, 0, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-                                                    mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+                                                        mSurfaceView.onResume();
+                                                        mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
-                                                    FrameLayout coverFrame = (FrameLayout) findViewById(R.id.cover_frame);
-                                                    coverFrame.setVisibility(View.GONE);
-                                                }
-                                            });
+                                                        hideCoverFrame();
 
-                                            break;
+                                                        isCreateSurfaceAndScene = true;
+                                                    }
+                                                });
+
+                                                break;
+                                            }
+
+                                            cloudDataTimestamp = cloudData.timestamp;
                                         }
-
-                                        cloudDataTimestamp = cloudData.timestamp;
                                     }
                                 }
-                            }
-                        }).start();
+                            }).start();
+                        } else {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (mSurfaceView != null) {
+                                        mSurfaceView.onResume();
+                                        mSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+
+                                        hideCoverFrame();
+                                    } else {
+                                        showCoverFrame(R.string.surface_is_not_available);
+                                    }
+                                }
+                            });
+                        }
                     }
                 }
             }
@@ -628,7 +651,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
         if (hasCameraPermission()) {
-            bindTangoAndResumeSurface();
+            checkPermissionsAndBindTango();
         } else {
             Toast.makeText(this, "Java Augmented Reality Example requires camera permission",
                     Toast.LENGTH_LONG).show();
@@ -655,7 +678,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
             if (resultCode == RESULT_CANCELED) {
                 finish();
             } else {
-                bindTangoAndResumeSurface();
+                checkPermissionsAndBindTango();
             }
         }
     }
@@ -692,5 +715,15 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
                 marker.setBackgroundColor(color);
             }
         });
+    }
+
+    private void showCoverFrame(int coverText) {
+        coverFrameText.setText(coverText);
+        coverFrame.setVisibility(View.VISIBLE);
+    }
+
+    private void hideCoverFrame() {
+        coverFrameText.setText("");
+        coverFrame.setVisibility(View.GONE);
     }
 }

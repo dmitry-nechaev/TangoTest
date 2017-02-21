@@ -113,8 +113,6 @@ public class AugmentedRealityRenderer extends Renderer {
 
         Vector3 floorPlaneVector = transformFloorMatrix4.getTranslation();
         double cameraHeight = floorPlaneVector.y;
-        //Log.d("AGn", String.format("cameraHeight: x - %f, y - %f, z - %f", floorPlaneVector.x, floorPlaneVector.y, floorPlaneVector.z));
-
 
         Material material = new Material();
         material.enableLighting(true);
