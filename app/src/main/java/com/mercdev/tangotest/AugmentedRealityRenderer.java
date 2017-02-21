@@ -22,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
+import android.widget.Toast;
 
 import com.google.atap.tangoservice.TangoPoseData;
 import com.projecttango.tangosupport.TangoSupport;
@@ -113,7 +114,6 @@ public class AugmentedRealityRenderer extends Renderer {
 
         Vector3 floorPlaneVector = transformFloorMatrix4.getTranslation();
         double cameraHeight = floorPlaneVector.y;
-        //Log.d("AGn", String.format("cameraHeight: x - %f, y - %f, z - %f", floorPlaneVector.x, floorPlaneVector.y, floorPlaneVector.z));
 
 
         Material material = new Material();
@@ -129,7 +129,7 @@ public class AugmentedRealityRenderer extends Renderer {
                 float height = (float) fixture.getHeight() / 100f;
                 float depth = (float) fixture.getDepth() / 100f;
                 RectangularPrism rect = new RectangularPrism(width, height, depth);
-                rect.setPosition((double) fixture.getPosition().x / 100f + width * 0.5f, cameraHeight, (double) fixture.getPosition().y / 100f + depth * 0.5f);
+                rect.setPosition((double) fixture.getPosition().x / 100f + width * 0.5f, height * 0.5f + cameraHeight, (double) fixture.getPosition().y / 100f + depth * 0.5f);
                 rect.setMaterial(material);
                 rect.setColor(fixture.getColor());
                 rect.setName("Fixture" + position);
