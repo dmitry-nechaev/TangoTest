@@ -20,9 +20,7 @@ import java.util.ArrayList;
 public class Minimap extends View {
 
     private final int LAYOUT_PADDING = 16;
-
     private Paint paint;
-    private ArrayList<Fixture> fixtures;
     private int minX, minY, maxX, maxY;
     private float delta;
     private int cameraX, cameraY;
@@ -39,6 +37,7 @@ public class Minimap extends View {
 
     @Override
     public void onDraw(Canvas canvas) {
+        ArrayList<Fixture> fixtures = FixturesRepository.getInstance().getFixtures();
         for (Fixture fixture : fixtures) {
             paint.setColor(Color.BLACK);
             int x1 = (int) ((-minX + fixture.getPosition().x) * delta);
@@ -52,8 +51,8 @@ public class Minimap extends View {
         canvas.drawCircle((-minX + cameraX) * delta, (-minY + cameraY)* delta, 30 * delta, paint);
     }
 
-    public void setFixtures(ArrayList<Fixture> fixtures, Resources resources) {
-        this.fixtures = fixtures;
+    public void processFixtures() {
+        ArrayList<Fixture> fixtures = FixturesRepository.getInstance().getFixtures();
         if (fixtures.size() > 0) {
             minX = fixtures.get(0).getPosition().x;
             maxX = fixtures.get(0).getPosition().x + fixtures.get(0).getWidth();
@@ -79,8 +78,8 @@ public class Minimap extends View {
         minY -= LAYOUT_PADDING;
         maxY += LAYOUT_PADDING;
 
-        float deltaX = Math.abs((float) resources.getDimensionPixelSize(R.dimen.minimap_width) / (maxX - minX));
-        float deltaY = Math.abs((float) resources.getDimensionPixelSize(R.dimen.minimap_height) / (maxY - minY));
+        float deltaX = Math.abs((float) getResources().getDimensionPixelSize(R.dimen.minimap_width) / (maxX - minX));
+        float deltaY = Math.abs((float) getResources().getDimensionPixelSize(R.dimen.minimap_height) / (maxY - minY));
         delta = Math.min(deltaX, deltaY);
     }
 
@@ -95,6 +94,7 @@ public class Minimap extends View {
         paint = new Paint();
         paint.setStyle(Paint.Style.FILL);
         setWillNotDraw(false);
+        processFixtures();
     }
 
 }

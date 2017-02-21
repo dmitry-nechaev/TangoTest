@@ -72,8 +72,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     private double mCameraPoseTimestamp = 0;
     private Object3D previousObject;
 
-    private ArrayList<Fixture> fixtures;
-
     // Texture rendering related fields.
     // NOTE: Naming indicates which thread is in charge of updating this variable.
     private int mConnectedTextureIdGlThread = INVALID_TEXTURE_ID;
@@ -150,7 +148,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
 
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
         minimap = (Minimap) findViewById(R.id.minimap);
-        minimap.setFixtures(fixtures, getResources());
+        minimap.processFixtures();
 
         ImageButton switchMapVisibilityButton = (ImageButton) findViewById(R.id.switch_map_visibility);
         switchMapVisibilityButton.setOnClickListener(new View.OnClickListener() {
@@ -420,7 +418,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
         // (@see https://github.com/Rajawali/Rajawali/wiki/Scene-Frame-Callbacks)
 
         mRenderer = new AugmentedRealityRenderer(this, this);
-        mRenderer.setFixtures(fixtures);
         mRenderer.getCurrentScene().registerFrameCallback(new ASceneFrameCallback() {
             @Override
             public void onPreFrame(long sceneTime, double deltaTime) {
@@ -684,7 +681,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
     }
 
     private void initFixtures() {
-        fixtures = new ArrayList<>();
+        ArrayList<Fixture> fixtures = new ArrayList<>();
 
         int fixtureColor = Color.WHITE;
         fixtures.add(new Fixture(new Point(100, -50), 400, 40, 200, fixtureColor));
@@ -692,6 +689,8 @@ public class MainActivity extends Activity implements View.OnTouchListener, OnOb
         fixtures.add(new Fixture(new Point(-100, 250), 400, 400, 40, fixtureColor));
         fixtures.add(new Fixture(new Point(300, 1250), 400, 400, 40, fixtureColor));
         fixtures.add(new Fixture(new Point(-200, -670), 400, 600, 25, fixtureColor));
+
+        FixturesRepository.getInstance().setFixtures(fixtures);
     }
 
     @Override

@@ -72,8 +72,6 @@ public class AugmentedRealityRenderer extends Renderer {
     private float cameraHeight = 0.0f;
     private boolean mObjectPoseUpdated = false;
 
-    private ArrayList<Fixture> fixtures;
-
     private boolean isFixturesVisible = true;
 
     private RayPicker picker;
@@ -122,6 +120,8 @@ public class AugmentedRealityRenderer extends Renderer {
         material.enableLighting(true);
         material.setDiffuseMethod(new DiffuseMethod.Lambert());
 
+        ArrayList<Fixture> fixtures = FixturesRepository.getInstance().getFixtures();
+
         if (fixtures != null && isFixturesVisible) {
             int position = 0;
             for (Fixture fixture : fixtures) {
@@ -137,14 +137,6 @@ public class AugmentedRealityRenderer extends Renderer {
                 position++;
             }
         }
-
-        Object3D earth = new Sphere(0.4f, 20, 20);
-        earth.setMaterial(material);
-        earth.setColor(0x333333 + (int) (Math.random() * 0xcccccc));
-        earth.setPosition(0, 0, -3);
-        earth.setDrawingMode(GLES20.GL_TRIANGLES);
-        //bob.registerObject(earth);
-        getCurrentScene().addChild(earth);
     }
 
     /**
@@ -259,10 +251,6 @@ public class AugmentedRealityRenderer extends Renderer {
 
     public boolean isFixturesVisible() {
         return isFixturesVisible;
-    }
-
-    public void setFixtures(ArrayList<Fixture> fixtures) {
-        this.fixtures = fixtures;
     }
 
     public void getObjectAt(float x, float y) {
