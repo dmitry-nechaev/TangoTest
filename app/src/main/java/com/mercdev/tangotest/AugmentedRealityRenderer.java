@@ -17,6 +17,7 @@ package com.mercdev.tangotest;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.opengl.GLES20;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -35,9 +36,11 @@ import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.RectangularPrism;
 import org.rajawali3d.primitives.ScreenQuad;
+import org.rajawali3d.primitives.Sphere;
 import org.rajawali3d.renderer.Renderer;
 import org.rajawali3d.util.ObjectColorPicker;
 import org.rajawali3d.util.OnObjectPickedListener;
+import org.rajawali3d.util.RayPicker;
 
 import java.util.ArrayList;
 
@@ -73,11 +76,13 @@ public class AugmentedRealityRenderer extends Renderer {
 
     private boolean isFixturesVisible = true;
 
-    private ObjectColorPicker picker;
+    private RayPicker picker;
+    //private ObjectColorPicker picker;
 
     public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener) {
         super(context);
-        picker = new ObjectColorPicker(this);
+        picker = new RayPicker(this);
+        //picker = new ObjectColorPicker(this);
         picker.setOnObjectPickedListener(onObjectPickedListener);
     }
 
@@ -112,25 +117,34 @@ public class AugmentedRealityRenderer extends Renderer {
         getCurrentScene().addLight(light);
 
 
+
+        Material material = new Material();
+        material.enableLighting(true);
+        material.setDiffuseMethod(new DiffuseMethod.Lambert());
+
         if (fixtures != null && isFixturesVisible) {
             int position = 0;
             for (Fixture fixture : fixtures) {
-
-                Material material = new Material();
-                material.enableLighting(true);
-                material.setDiffuseMethod(new DiffuseMethod.Lambert());
-
                 RectangularPrism rect = new RectangularPrism((float) fixture.getWidth() / 100, (float) fixture.getHeight() / 100, (float) fixture.getDepth() / 100);
                 rect.setPosition((double) fixture.getPosition().x / 100, -0.3, (double) fixture.getPosition().y / 100);
                 rect.setMaterial(material);
                 rect.setColor(fixture.getColor());
                 rect.setName("Fixture" + position);
+                rect.setDrawingMode(GLES20.GL_TRIANGLES);
                 getCurrentScene().addChild(rect);
                 objects.add(rect);
-                picker.registerObject(rect);
+                //picker.registerObject(rect);
                 position++;
             }
         }
+
+        Object3D earth = new Sphere(0.4f, 20, 20);
+        earth.setMaterial(material);
+        earth.setColor(0x333333 + (int) (Math.random() * 0xcccccc));
+        earth.setPosition(0, 0, -3);
+        earth.setDrawingMode(GLES20.GL_TRIANGLES);
+        //bob.registerObject(earth);
+        getCurrentScene().addChild(earth);
     }
 
     /**
