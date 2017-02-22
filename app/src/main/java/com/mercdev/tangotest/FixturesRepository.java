@@ -1,5 +1,7 @@
 package com.mercdev.tangotest;
 
+import android.text.TextUtils;
+
 import java.util.ArrayList;
 
 /**
@@ -32,6 +34,19 @@ public class FixturesRepository {
 
     public Fixture getFixture(int index) {
         return index < fixtures.size() ? fixtures.get(index) : null;
+    }
+
+    public Fixture getFixture(String name) {
+        Fixture result = null;
+        if (!TextUtils.isEmpty(name)) {
+            for (Fixture fixture : fixtures) {
+                if (name.equals(fixture.getName())){
+                    result = fixture;
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     public boolean removeFixture(int index) {

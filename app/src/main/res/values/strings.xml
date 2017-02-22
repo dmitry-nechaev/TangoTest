@@ -12,5 +12,9 @@
 
     <string name="fixture_dialog_nothing_targeted">Nothing targeted</string>
     <string name="fixture_dialog_nothing_targeted_hint">(Point the target at a map object to make changes)</string>
+    <string name="fixture_dialog_targeted_distance" formatted="false">Distance: %.2f m</string>
+    <string name="fixture_dialog_targeted_height" formatted="false">Height: %.2f m</string>
+    <string name="fixture_dialog_targeted_width" formatted="false">Width: %.2f m</string>
+    <string name="fixture_dialog_targeted_depth" formatted="false">Depth: %.2f m</string>
 
 </resources>

@@ -10,15 +10,23 @@ import android.graphics.Rect;
 public class Fixture {
 
     private Point position;
+    private String name;
     private int height, width, depth;
     private int color;
+    private double rotationAngle;
 
-    public Fixture(Point position, int height, int width, int depth, int color) {
+    public Fixture(String name, Point position, int height, int width, int depth, double rotateAngle, int color) {
+        this.name = name;
         this.position = position;
         this.height = height;
         this.width = width;
         this.depth = depth;
+        this.rotationAngle = rotationAngle;
         this.color = color;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public Point getPosition() {
@@ -35,6 +43,10 @@ public class Fixture {
 
     public int getDepth() {
         return depth;
+    }
+
+    public double getRotationAngle() {
+        return rotationAngle;
     }
 
     public int getColor() {

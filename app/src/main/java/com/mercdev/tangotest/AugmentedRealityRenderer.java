@@ -125,8 +125,9 @@ public class AugmentedRealityRenderer extends Renderer {
                 rect.setPosition((double) fixture.getPosition().x / 100f + width * 0.5f, height * 0.5f + cameraHeight, (double) fixture.getPosition().y / 100f + depth * 0.5f);
                 rect.setMaterial(material);
                 rect.setColor(fixture.getColor());
-                rect.setName("Fixture" + position);
+                rect.setName(fixture.getName());
                 rect.setDrawingMode(GLES20.GL_TRIANGLES);
+                rect.setRotY(fixture.getRotationAngle());
                 getCurrentScene().addChild(rect);
                 objects.add(rect);
                 picker.registerObject(rect);

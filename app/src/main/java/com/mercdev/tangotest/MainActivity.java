@@ -65,7 +65,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private FrameLayout coverFrame;
     private TextView coverFrameText;
     private Minimap minimap;
-    private View nothingTargeted;
+    private View nothingTargeted, targetedFixture;
     private View marker;
 
     private AugmentedRealityRenderer mRenderer;
@@ -180,6 +180,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         });
 
         nothingTargeted = findViewById(R.id.nothing_targeted);
+        targetedFixture = findViewById(R.id.targeted_fixture);
         marker = findViewById(R.id.marker);
 
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
@@ -652,11 +653,11 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         ArrayList<Fixture> fixtures = new ArrayList<>();
 
         int fixtureColor = Color.WHITE;
-        fixtures.add(new Fixture(new Point(100, -50), 400, 40, 200, fixtureColor));
-        fixtures.add(new Fixture(new Point(-100, -50), 200, 40, 200, fixtureColor));
-        fixtures.add(new Fixture(new Point(-100, 250), 400, 400, 40, fixtureColor));
-        fixtures.add(new Fixture(new Point(300, 1250), 400, 400, 40, fixtureColor));
-        fixtures.add(new Fixture(new Point(-200, -670), 400, 600, 25, fixtureColor));
+        fixtures.add(new Fixture("Fixture1", new Point(100, -50), 400, 40, 200, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture2", new Point(-100, -50), 200, 40, 200, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture3", new Point(-100, 250), 400, 400, 40, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture4", new Point(300, 1250), 400, 400, 40, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture5", new Point(-200, -670), 400, 600, 25, 0f, fixtureColor));
 
         FixturesRepository.getInstance().setFixtures(fixtures);
     }
@@ -676,8 +677,13 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     @Override
     public void onObjectPicked(@NonNull Object3D object) {
         if (object != null) {
-            changeMarkerColor(Color.GREEN);
-            previousObject = object;
+            Fixture fixture = FixturesRepository.getInstance().getFixture(object.getName());
+            if (fixture != null && (previousObject == null || !previousObject.getName().equals(object.getName()))) {
+                float distance = 0f; //TODO set real value of distance
+                showFixtureInformation(fixture, distance);
+                changeMarkerColor(Color.GREEN);
+                previousObject = object;
+            }
         } else {
             onNoObjectPicked();
         }
@@ -685,9 +691,12 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
     @Override
     public void onNoObjectPicked() {
-        changeMarkerColor(Color.RED);
+        if (previousObject != null) {
+            showNothingTargeted();
+            changeMarkerColor(Color.RED);
 
-        previousObject = null;
+            previousObject = null;
+        }
     }
 
     private void changeMarkerColor(final int color) {
@@ -707,5 +716,35 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private void hideCoverFrame() {
         coverFrameText.setText("");
         coverFrame.setVisibility(View.GONE);
+    }
+
+    private void showNothingTargeted() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                nothingTargeted.setVisibility(View.VISIBLE);
+                targetedFixture.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void showFixtureInformation(final Fixture fixture, final float distance) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView) targetedFixture.findViewById(R.id.fixture_name)).setText(fixture.getName());
+                ((TextView) targetedFixture.findViewById(R.id.fixture_distance))
+                        .setText(String.format(getResources().getString(R.string.fixture_dialog_targeted_distance), distance));
+                ((TextView) targetedFixture.findViewById(R.id.fixture_height))
+                        .setText(String.format(getResources().getString(R.string.fixture_dialog_targeted_height), fixture.getHeight() / 100f));
+                ((TextView) targetedFixture.findViewById(R.id.fixture_width))
+                        .setText(String.format(getResources().getString(R.string.fixture_dialog_targeted_width), fixture.getWidth() / 100f));
+                ((TextView) targetedFixture.findViewById(R.id.fixture_depth))
+                        .setText(String.format(getResources().getString(R.string.fixture_dialog_targeted_depth), fixture.getDepth() / 100f));
+
+                nothingTargeted.setVisibility(View.GONE);
+                targetedFixture.setVisibility(View.VISIBLE);
+            }
+        });
     }
 }
