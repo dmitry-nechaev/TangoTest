@@ -33,7 +33,6 @@ import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.RectangularPrism;
-import org.rajawali3d.primitives.ScreenQuad;
 import org.rajawali3d.renderer.Renderer;
 import org.rajawali3d.util.ObjectColorPicker;
 import org.rajawali3d.util.OnObjectPickedListener;
@@ -59,19 +58,17 @@ public class AugmentedRealityRenderer extends Renderer {
     // Keeps track of whether the scene camera has been configured.
     private boolean mSceneCameraConfigured;
 
-    private ScreenQuad mBackgroundQuad;
+    private TangoScreenQuad mBackgroundQuad;
     private ArrayList<Object3D> objects = new ArrayList<>();
     private Matrix4 transformFloorMatrix4;
 
     private boolean isFixturesVisible = true;
 
-    //private RayPicker picker;
     private ObjectColorPicker picker;
 
     public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener, Matrix4 transformFloorMatrix4) {
         super(context);
         this.transformFloorMatrix4 = transformFloorMatrix4;
-        //picker = new RayPicker(this);
         picker = new ObjectColorPicker(this);
         picker.setOnObjectPickedListener(onObjectPickedListener);
     }
@@ -84,7 +81,7 @@ public class AugmentedRealityRenderer extends Renderer {
         tangoCameraMaterial.setColorInfluence(0);
 
         if (mBackgroundQuad == null) {
-            mBackgroundQuad = new ScreenQuad();
+            mBackgroundQuad = new TangoScreenQuad();
             mBackgroundQuad.getGeometry().setTextureCoords(textureCoords0);
         }
         // We need to use Rajawali's {@code StreamingTexture} since it sets up the texture
@@ -142,7 +139,7 @@ public class AugmentedRealityRenderer extends Renderer {
      */
     public void updateColorCameraTextureUvGlThread(int rotation) {
         if (mBackgroundQuad == null) {
-            mBackgroundQuad = new ScreenQuad();
+            mBackgroundQuad = new TangoScreenQuad();
         }
 
         float[] textureCoords =
@@ -166,7 +163,6 @@ public class AugmentedRealityRenderer extends Renderer {
         // quaternions.
         getCurrentCamera().setRotation(quaternion.conjugate());
         getCurrentCamera().setPosition(translation[0], translation[1], translation[2]);
-        //Log.d("AGn", String.format("Translation: x - %f, y - %f, z - %f", translation[0], translation[1], translation[2]));
     }
 
     /**
