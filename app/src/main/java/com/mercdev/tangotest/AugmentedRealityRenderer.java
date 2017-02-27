@@ -17,6 +17,7 @@ package com.mercdev.tangotest;
 
 import android.content.Context;
 import android.opengl.GLES20;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -113,7 +114,6 @@ public class AugmentedRealityRenderer extends Renderer {
         ArrayList<Fixture> fixtures = FixturesRepository.getInstance().getFixtures();
 
         if (fixtures != null && isFixturesVisible) {
-            int position = 0;
             for (Fixture fixture : fixtures) {
                 float width = (float) fixture.getWidth() / 100f;
                 float height = (float) fixture.getHeight() / 100f;
@@ -122,12 +122,16 @@ public class AugmentedRealityRenderer extends Renderer {
                 rect.setPosition((double) fixture.getPosition().x / 100f + width * 0.5f, height * 0.5f + cameraHeight, (double) fixture.getPosition().y / 100f + depth * 0.5f);
                 rect.setMaterial(material);
                 rect.setColor(fixture.getColor());
-                rect.setName("Fixture" + position);
+                rect.setName(fixture.getName());
                 rect.setDrawingMode(GLES20.GL_TRIANGLES);
+                rect.setRotY(fixture.getRotationAngle());
+                rect.setBackSided(true);
+                rect.setDoubleSided(true);
+                rect.setBlendingEnabled(true);
+                rect.setBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
                 getCurrentScene().addChild(rect);
                 objects.add(rect);
                 picker.registerObject(rect);
-                position++;
             }
         }
     }
@@ -231,5 +235,16 @@ public class AugmentedRealityRenderer extends Renderer {
 
     public void getObjectAt(float x, float y) {
         picker.getObjectAt(x, y);
+    }
+
+    public void removeObject(String name) {
+        if (!TextUtils.isEmpty(name))
+        for (Object3D object3D : objects) {
+            if (name.equals(object3D.getName())) {
+                getCurrentScene().removeChild(object3D);
+                objects.remove(object3D);
+                break;
+            }
+        }
     }
 }

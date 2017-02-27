@@ -11,6 +11,8 @@ import android.view.View;
 
 import com.google.atap.tangoservice.TangoPoseData;
 
+import org.rajawali3d.math.Quaternion;
+
 import java.util.ArrayList;
 
 /**
@@ -24,6 +26,8 @@ public class Minimap extends View {
     private int minX, minY, maxX, maxY;
     private float delta;
     private int cameraX, cameraY;
+    private double cameraRotation;
+    private double cameraYaw, cameraPitch, cameraRoll;
 
     public Minimap(Context context) {
         super(context);
@@ -47,8 +51,20 @@ public class Minimap extends View {
             canvas.drawRect(new Rect(x1, y1, x2, y2), paint);
         }
 
+        float cx = (-minX + cameraX) * delta;
+        float cy = (-minY + cameraY)* delta;
+        float radius = 30 * delta;
         paint.setColor(Color.BLUE);
-        canvas.drawCircle((-minX + cameraX) * delta, (-minY + cameraY)* delta, 30 * delta, paint);
+        paint.setAlpha(128);
+        float sweepAngle = 60f;
+        int radiusMultiplier = 4;
+        canvas.drawArc(cx - radiusMultiplier *radius,
+                cy - radiusMultiplier * radius,
+                cx + radiusMultiplier *radius,
+                cy + radiusMultiplier * radius,
+                - 90 - sweepAngle * 0.5f - (float) Math.toDegrees(cameraRotation), sweepAngle, true, paint);
+        paint.setAlpha(255);
+        canvas.drawCircle(cx, cy, radius, paint);
     }
 
     public void processFixtures() {
@@ -85,6 +101,11 @@ public class Minimap extends View {
 
     public void setCameraPosition(TangoPoseData cameraPose) {
         float[] rotation = cameraPose.getRotationAsFloats();
+        Quaternion q = new Quaternion(rotation[3], rotation[0], rotation[1], rotation[2]);
+        cameraRotation = q.getRotationY();
+        cameraYaw = Math.atan2(2.0*(q.y*q.z + q.w*q.x), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
+        cameraPitch = Math.asin(-2.0*(q.x*q.z - q.w*q.y));
+        cameraRoll = Math.atan2(2.0*(q.x*q.y + q.w*q.z), q.w*q.w + q.x*q.x - q.y*q.y - q.z*q.z);
         float[] translation = cameraPose.getTranslationAsFloats();
         cameraX = (int) (translation[0] * 100);
         cameraY = (int) (translation[2] * 100);

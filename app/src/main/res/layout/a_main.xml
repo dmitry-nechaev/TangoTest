@@ -88,19 +88,60 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp"
+                    style="@style/fixture_modal_text"
                     android:text="@string/fixture_dialog_nothing_targeted"
                     android:layout_marginBottom="32dp"/>
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp"
+                    style="@style/fixture_modal_text"
                     android:text="@string/fixture_dialog_nothing_targeted_hint"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/targeted_fixture"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/fixture_name"
+                    style="@style/fixture_modal_text"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:id="@+id/fixture_distance"
+                    style="@style/fixture_modal_text"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:id="@+id/fixture_height"
+                    style="@style/fixture_modal_text"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/fixture_width"
+                    style="@style/fixture_modal_text"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/fixture_depth"
+                    android:layout_marginBottom="4dp"
+                    style="@style/fixture_modal_text" />
+                
+                <Button
+                    android:id="@+id/fixture_modify"
+                    android:layout_marginBottom="4dp"
+                    android:text="@string/fixture_dialog_modify"
+                    style="@style/fixture_modal_button" />
+
+                <Button
+                    android:id="@+id/fixture_delete"
+                    android:layout_marginBottom="4dp"
+                    android:text="@string/fixture_dialog_delete"
+                    style="@style/fixture_modal_button" />
+
+
             </LinearLayout>
 
         </FrameLayout>
