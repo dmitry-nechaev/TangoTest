@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -740,6 +741,23 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         .setText(String.format(getResources().getString(R.string.fixture_dialog_targeted_width), fixture.getWidth() / 100f));
                 ((TextView) targetedFixture.findViewById(R.id.fixture_depth))
                         .setText(String.format(getResources().getString(R.string.fixture_dialog_targeted_depth), fixture.getDepth() / 100f));
+
+                targetedFixture.findViewById(R.id.fixture_modify).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                    }
+                });
+                targetedFixture.findViewById(R.id.fixture_delete).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (previousObject != null) {
+                            FixturesRepository.getInstance().removeFixture(previousObject.getName());
+                            mRenderer.removeObject(previousObject.getName());
+                            minimap.postInvalidate();
+                        }
+                    }
+                });
 
                 nothingTargeted.setVisibility(View.GONE);
                 targetedFixture.setVisibility(View.VISIBLE);

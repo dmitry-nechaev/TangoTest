@@ -16,5 +16,7 @@
     <string name="fixture_dialog_targeted_height" formatted="false">Height: %.2f m</string>
     <string name="fixture_dialog_targeted_width" formatted="false">Width: %.2f m</string>
     <string name="fixture_dialog_targeted_depth" formatted="false">Depth: %.2f m</string>
+    <string name="fixture_dialog_modify">Modify</string>
+    <string name="fixture_dialog_delete">Delete</string>
 
 </resources>

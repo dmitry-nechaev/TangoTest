@@ -17,6 +17,7 @@ package com.mercdev.tangotest;
 
 import android.content.Context;
 import android.opengl.GLES20;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -238,5 +239,16 @@ public class AugmentedRealityRenderer extends Renderer {
 
     public void getObjectAt(float x, float y) {
         picker.getObjectAt(x, y);
+    }
+
+    public void removeObject(String name) {
+        if (!TextUtils.isEmpty(name))
+        for (Object3D object3D : objects) {
+            if (name.equals(object3D.getName())) {
+                getCurrentScene().removeChild(object3D);
+                objects.remove(object3D);
+                break;
+            }
+        }
     }
 }

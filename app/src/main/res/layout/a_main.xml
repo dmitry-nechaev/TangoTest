@@ -128,6 +128,19 @@
                     android:id="@+id/fixture_depth"
                     android:layout_marginBottom="4dp"
                     style="@style/fixture_modal_text" />
+                
+                <Button
+                    android:id="@+id/fixture_modify"
+                    android:layout_marginBottom="4dp"
+                    android:text="@string/fixture_dialog_modify"
+                    style="@style/fixture_modal_button" />
+
+                <Button
+                    android:id="@+id/fixture_delete"
+                    android:layout_marginBottom="4dp"
+                    android:text="@string/fixture_dialog_delete"
+                    style="@style/fixture_modal_button" />
+
 
             </LinearLayout>
 
