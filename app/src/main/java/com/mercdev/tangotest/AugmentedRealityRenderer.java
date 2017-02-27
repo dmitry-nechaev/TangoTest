@@ -116,7 +116,6 @@ public class AugmentedRealityRenderer extends Renderer {
         ArrayList<Fixture> fixtures = FixturesRepository.getInstance().getFixtures();
 
         if (fixtures != null && isFixturesVisible) {
-            int position = 0;
             for (Fixture fixture : fixtures) {
                 float width = (float) fixture.getWidth() / 100f;
                 float height = (float) fixture.getHeight() / 100f;
@@ -128,10 +127,13 @@ public class AugmentedRealityRenderer extends Renderer {
                 rect.setName(fixture.getName());
                 rect.setDrawingMode(GLES20.GL_TRIANGLES);
                 rect.setRotY(fixture.getRotationAngle());
+                rect.setBackSided(true);
+                rect.setDoubleSided(true);
+                rect.setBlendingEnabled(true);
+                rect.setBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
                 getCurrentScene().addChild(rect);
                 objects.add(rect);
                 picker.registerObject(rect);
-                position++;
             }
         }
     }

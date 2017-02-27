@@ -652,12 +652,11 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private void initFixtures() {
         ArrayList<Fixture> fixtures = new ArrayList<>();
 
-        int fixtureColor = Color.WHITE;
-        fixtures.add(new Fixture("Fixture1", new Point(100, -50), 400, 40, 200, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture2", new Point(-100, -50), 200, 40, 200, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture3", new Point(-100, 250), 400, 400, 40, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture4", new Point(300, 1250), 400, 400, 40, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture5", new Point(-200, -670), 400, 600, 25, 0f, fixtureColor));
+        int fixtureColor = getResources().getColor(R.color.object_color);
+        fixtures.add(new Fixture("Fixture1", new Point(345, -620), 280, 25, 685, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture2", new Point(-860, -620), 280, 25, 685, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture3", new Point(-835, 40), 280, 1180, 25, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture4", new Point(-835, -620), 280, 1180, 25, 0f, fixtureColor));
 
         FixturesRepository.getInstance().setFixtures(fixtures);
     }
