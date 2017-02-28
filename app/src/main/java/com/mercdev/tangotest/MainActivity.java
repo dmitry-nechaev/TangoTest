@@ -337,6 +337,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         config.putBoolean(TangoConfig.KEY_BOOLEAN_DEPTH, true);
         config.putInt(TangoConfig.KEY_INT_DEPTH_MODE, TangoConfig.TANGO_DEPTH_MODE_POINT_CLOUD);
 
+        config.putBoolean(TangoConfig.KEY_BOOLEAN_LEARNINGMODE, true);
+
         ArrayList<String> uuidAdf = tango.listAreaDescriptions();
         if (uuidAdf.size() > 0) {
             config.putString(TangoConfig.KEY_STRING_AREADESCRIPTION,
