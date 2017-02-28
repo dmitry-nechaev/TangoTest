@@ -169,6 +169,10 @@ public class AugmentedRealityRenderer extends Renderer {
         getCurrentCamera().setPosition(translation[0], translation[1], translation[2]);
     }
 
+    public Vector3 getCameraPosition() {
+        return getCurrentCamera().getPosition();
+    }
+
     /**
      * It returns the ID currently assigned to the texture where the Tango color camera contents
      * should be rendered.
@@ -239,12 +243,12 @@ public class AugmentedRealityRenderer extends Renderer {
 
     public void removeObject(String name) {
         if (!TextUtils.isEmpty(name))
-        for (Object3D object3D : objects) {
-            if (name.equals(object3D.getName())) {
-                getCurrentScene().removeChild(object3D);
-                objects.remove(object3D);
-                break;
+            for (Object3D object3D : objects) {
+                if (name.equals(object3D.getName())) {
+                    getCurrentScene().removeChild(object3D);
+                    objects.remove(object3D);
+                    break;
+                }
             }
-        }
     }
 }

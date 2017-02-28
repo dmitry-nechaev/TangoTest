@@ -20,7 +20,6 @@ import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -43,6 +42,7 @@ import com.projecttango.tangosupport.TangoSupport;
 
 import org.rajawali3d.Object3D;
 import org.rajawali3d.math.Matrix4;
+import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.scene.ASceneFrameCallback;
 import org.rajawali3d.util.OnObjectPickedListener;
 import org.rajawali3d.view.SurfaceView;
@@ -679,11 +679,11 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         if (object != null) {
             Fixture fixture = FixturesRepository.getInstance().getFixture(object.getName());
             if (fixture != null && (previousObject == null || !previousObject.getName().equals(object.getName()))) {
-                float distance = 0f; //TODO set real value of distance
-                showFixtureInformation(fixture, distance);
-                changeMarkerColor(Color.GREEN);
                 previousObject = object;
+                showFixtureInformation(fixture);
+                changeMarkerColor(Color.GREEN);
             }
+            setFixtureDistance();
         } else {
             onNoObjectPicked();
         }
@@ -728,13 +728,11 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         });
     }
 
-    private void showFixtureInformation(final Fixture fixture, final float distance) {
+    private void showFixtureInformation(final Fixture fixture) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 ((TextView) targetedFixture.findViewById(R.id.fixture_name)).setText(fixture.getName());
-                ((TextView) targetedFixture.findViewById(R.id.fixture_distance))
-                        .setText(String.format(getResources().getString(R.string.fixture_dialog_targeted_distance), distance));
                 ((TextView) targetedFixture.findViewById(R.id.fixture_height))
                         .setText(String.format(getResources().getString(R.string.fixture_dialog_targeted_height), fixture.getHeight() / 100f));
                 ((TextView) targetedFixture.findViewById(R.id.fixture_width))
@@ -763,5 +761,19 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 targetedFixture.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    private void setFixtureDistance() {
+        if (previousObject != null) {
+            Vector3 cameraPosition = mRenderer.getCameraPosition();
+            final double distance = Math.sqrt(Math.pow(previousObject.getX() - cameraPosition.x, 2) + Math.pow(previousObject.getY() - cameraPosition.y, 2));
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ((TextView) targetedFixture.findViewById(R.id.fixture_distance))
+                            .setText(String.format(getResources().getString(R.string.fixture_dialog_targeted_distance), distance));
+                }
+            });
+        }
     }
 }
