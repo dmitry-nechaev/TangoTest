@@ -69,24 +69,24 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private View nothingTargeted, targetedFixture, deleteFixture, modifyFixture;
     private View marker;
 
-    private AugmentedRealityRenderer mRenderer;
-    private Tango mTango;
-    private TangoConfig mConfig;
-    private boolean mIsConnected = false;
-    private double mCameraPoseTimestamp = 0;
+    private AugmentedRealityRenderer renderer;
+    private Tango tango;
+    private TangoConfig config;
+    private boolean isConnected = false;
+    private double cameraPoseTimestamp = 0;
     private Object3D previousObject;
     private TangoPointCloudManager tangoPointCloudManager;
 
     // Texture rendering related fields.
     // NOTE: Naming indicates which thread is in charge of updating this variable.
-    private int mConnectedTextureIdGlThread = INVALID_TEXTURE_ID;
-    private AtomicBoolean mIsFrameAvailableTangoThread = new AtomicBoolean(false);
-    private double mRgbTimestampGlThread;
+    private int connectedTextureIdGlThread = INVALID_TEXTURE_ID;
+    private AtomicBoolean isFrameAvailableTangoThread = new AtomicBoolean(false);
+    private double rgbTimestampGlThread;
 
     private boolean isLocalized = false;
     private boolean isCreateSurfaceAndScene = false;
 
-    private int mDisplayRotation;
+    private int displayRotation;
 
     /**
      * Use Tango camera intrinsics to calculate the projection Matrix for the Rajawali scene.
@@ -165,8 +165,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         switchCameraVisibilityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mRenderer.switchCameraBackgroundVisibilyty();
-                v.setAlpha(mRenderer.isBackgroundVisible() ? 1f : .4f);
+                renderer.switchCameraBackgroundVisibilyty();
+                v.setAlpha(renderer.isBackgroundVisible() ? 1f : .4f);
 
             }
         });
@@ -175,8 +175,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         switch3dVisibilityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mRenderer.switchFixturesVisibilyty();
-                v.setAlpha(mRenderer.isFixturesVisible() ? 1f : .4f);
+                renderer.switchFixturesVisibilyty();
+                v.setAlpha(renderer.isFixturesVisible() ? 1f : .4f);
             }
         });
 
@@ -226,21 +226,21 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             // will block here until all Tango callback calls are finished. If you lock against this
             // object in a Tango callback thread it will cause a deadlock.
             synchronized (this) {
-                if (mIsConnected) {
+                if (isConnected) {
                     try {
-                        if (isLocalized && mTango.getConfig(TangoConfig.CONFIG_TYPE_CURRENT).getBoolean(TangoConfig.KEY_BOOLEAN_LEARNINGMODE)) {
-                            String adfUuid = mTango.saveAreaDescription();
-                            TangoAreaDescriptionMetaData metadata = mTango.loadAreaDescriptionMetaData(adfUuid);
-                            mTango.saveAreaDescriptionMetadata(adfUuid, metadata);
+                        if (isLocalized && tango.getConfig(TangoConfig.CONFIG_TYPE_CURRENT).getBoolean(TangoConfig.KEY_BOOLEAN_LEARNINGMODE)) {
+                            String adfUuid = tango.saveAreaDescription();
+                            TangoAreaDescriptionMetaData metadata = tango.loadAreaDescriptionMetaData(adfUuid);
+                            tango.saveAreaDescriptionMetadata(adfUuid, metadata);
                         }
                         isLocalized = false;
-                        mIsConnected = false;
-                        mTango.disconnectCamera(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
+                        isConnected = false;
+                        tango.disconnectCamera(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
                         // We need to invalidate the connected texture ID so that we cause a
                         // re-connection in the OpenGL thread after resume.
-                        mConnectedTextureIdGlThread = INVALID_TEXTURE_ID;
-                        mTango.disconnect();
-                        mTango = null;
+                        connectedTextureIdGlThread = INVALID_TEXTURE_ID;
+                        tango.disconnect();
+                        tango = null;
                     } catch (TangoErrorException e) {
                         Log.e(TAG, getString(R.string.exception_tango_error), e);
                     }
@@ -262,9 +262,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
      * Initialize Tango Service as a normal Android Service.
      */
     private void bindTangoService() {
-        // Since we call mTango.disconnect() in onStop, this will unbind Tango Service, so every
+        // Since we call tango.disconnect() in onStop, this will unbind Tango Service, so every
         // time when onStart gets called, we should create a new Tango object.
-        mTango = new Tango(getApplicationContext(), new Runnable() {
+        tango = new Tango(getApplicationContext(), new Runnable() {
             // Pass in a Runnable to be called from UI thread when Tango is ready, this Runnable
             // will be running on a new thread.
             // When Tango is ready, we can call Tango functions safely here only when there
@@ -276,10 +276,10 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 synchronized (MainActivity.this) {
                     try {
                         TangoSupport.initialize();
-                        mConfig = setupTangoConfig(mTango);
-                        mTango.connect(mConfig);
+                        config = setupTangoConfig(tango);
+                        tango.connect(config);
                         startupTango();
-                        mIsConnected = true;
+                        isConnected = true;
                         setDisplayRotation();
                     } catch (TangoOutOfDateException e) {
                         Log.e(TAG, getString(R.string.exception_out_of_date), e);
@@ -295,7 +295,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     public void run() {
                         synchronized (MainActivity.this) {
                             final ImageButton adfRemoveButton = (ImageButton) findViewById(R.id.adf_remove_button);
-                            final ArrayList<String> uuidAdf = mTango.listAreaDescriptions();
+                            final ArrayList<String> uuidAdf = tango.listAreaDescriptions();
                             if (uuidAdf.size() == 0) {
                                 adfRemoveButton.setVisibility(View.INVISIBLE);
                             } else {
@@ -305,7 +305,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     public void onClick(View view) {
                                         if (uuidAdf.size() > 0) {
                                             for (String uuid : uuidAdf) {
-                                                mTango.deleteAreaDescription(uuid);
+                                                tango.deleteAreaDescription(uuid);
                                             }
                                             adfRemoveButton.setVisibility(View.INVISIBLE);
                                         }
@@ -320,7 +320,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     }
 
     /**
-     * Sets up the tango configuration object. Make sure mTango object is initialized before
+     * Sets up the tango configuration object. Make sure tango object is initialized before
      * making this call.
      */
     private TangoConfig setupTangoConfig(Tango tango) {
@@ -363,7 +363,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE));
 
 
-        mTango.connectListener(framePairs, new Tango.TangoUpdateCallback() {
+        tango.connectListener(framePairs, new Tango.TangoUpdateCallback() {
             @Override
             public void onPoseAvailable(final TangoPoseData pose) {
                 if (pose.baseFrame == TangoPoseData.COORDINATE_FRAME_AREA_DESCRIPTION
@@ -388,7 +388,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                         TangoPointCloudData cloudData = tangoPointCloudManager.getLatestPointCloud();
                                         if (cloudDataTimestamp < cloudData.timestamp) {
                                             final Matrix4 transformFloorMatrix4 = FloorPlaneDefinitionHelper.getTransformFloorMatrix4(FLOOR_DEFINITION_POINT.x, FLOOR_DEFINITION_POINT.y, cloudData,
-                                                    mRgbTimestampGlThread, mDisplayRotation);
+                                                    rgbTimestampGlThread, displayRotation);
 
                                             // TODO need add check defined plane is floor
                                             if (transformFloorMatrix4 != null) {
@@ -470,7 +470,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     }
 
                     // Mark a camera frame is available for rendering in the OpenGL thread.
-                    mIsFrameAvailableTangoThread.set(true);
+                    isFrameAvailableTangoThread.set(true);
                     // Trigger an Rajawali render to update the scene with the new RGB data.
                     mSurfaceView.requestRender();
                 }
@@ -486,51 +486,51 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         // RGB frame is rendered.
         // (@see https://github.com/Rajawali/Rajawali/wiki/Scene-Frame-Callbacks)
 
-        mRenderer = new AugmentedRealityRenderer(this, this, transformFloorMatrix4);
-        mRenderer.getCurrentScene().registerFrameCallback(new ASceneFrameCallback() {
+        renderer = new AugmentedRealityRenderer(this, this, transformFloorMatrix4);
+        renderer.getCurrentScene().registerFrameCallback(new ASceneFrameCallback() {
             @Override
             public void onPreFrame(long sceneTime, double deltaTime) {
                 // NOTE: This is called from the OpenGL render thread, after all the renderer
                 // onRender callbacks had a chance to run and before scene objects are rendered
                 // into the scene.
 
-                // Prevent concurrent access to {@code mIsFrameAvailableTangoThread} from the Tango
+                // Prevent concurrent access to {@code isFrameAvailableTangoThread} from the Tango
                 // callback thread and service disconnection from an onPause event.
                 try {
                     synchronized (MainActivity.this) {
                         // Don't execute any tango API actions if we're not connected to the service
-                        if (!mIsConnected) {
+                        if (!isConnected) {
                             return;
                         }
 
                         // Set-up scene camera projection to match RGB camera intrinsics.
-                        if (!mRenderer.isSceneCameraConfigured()) {
+                        if (!renderer.isSceneCameraConfigured()) {
                             TangoCameraIntrinsics intrinsics =
                                     TangoSupport.getCameraIntrinsicsBasedOnDisplayRotation(
                                             TangoCameraIntrinsics.TANGO_CAMERA_COLOR,
-                                            mDisplayRotation);
-                            mRenderer.setProjectionMatrix(
+                                            displayRotation);
+                            renderer.setProjectionMatrix(
                                     projectionMatrixFromCameraIntrinsics(intrinsics));
                         }
 
                         // Connect the camera texture to the OpenGL Texture if necessary
                         // NOTE: When the OpenGL context is recycled, Rajawali may re-generate the
                         // texture with a different ID.
-                        if (mConnectedTextureIdGlThread != mRenderer.getTextureId()) {
-                            mTango.connectTextureId(TangoCameraIntrinsics.TANGO_CAMERA_COLOR,
-                                    mRenderer.getTextureId());
-                            mConnectedTextureIdGlThread = mRenderer.getTextureId();
-                            Log.d(TAG, "connected to texture id: " + mRenderer.getTextureId());
+                        if (connectedTextureIdGlThread != renderer.getTextureId()) {
+                            tango.connectTextureId(TangoCameraIntrinsics.TANGO_CAMERA_COLOR,
+                                    renderer.getTextureId());
+                            connectedTextureIdGlThread = renderer.getTextureId();
+                            Log.d(TAG, "connected to texture id: " + renderer.getTextureId());
                         }
 
                         // If there is a new RGB camera frame available, update the texture with it
-                        if (mIsFrameAvailableTangoThread.compareAndSet(true, false)) {
-                            mRgbTimestampGlThread =
-                                    mTango.updateTexture(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
+                        if (isFrameAvailableTangoThread.compareAndSet(true, false)) {
+                            rgbTimestampGlThread =
+                                    tango.updateTexture(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
                         }
 
                         // If a new RGB frame has been rendered, update the camera pose to match.
-                        if (mRgbTimestampGlThread > mCameraPoseTimestamp) {
+                        if (rgbTimestampGlThread > cameraPoseTimestamp) {
                             // Calculate the camera color pose at the camera frame update time in
                             // OpenGL engine.
                             //
@@ -541,20 +541,20 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                             // Note that if you don't want to use the drift corrected pose, the
                             // normal device with respect to start of service pose is available.
                             TangoPoseData lastFramePose = TangoSupport.getPoseAtTime(
-                                    mRgbTimestampGlThread,
+                                    rgbTimestampGlThread,
                                     TangoPoseData.COORDINATE_FRAME_AREA_DESCRIPTION,
                                     TangoPoseData.COORDINATE_FRAME_CAMERA_COLOR,
                                     TangoSupport.TANGO_SUPPORT_ENGINE_OPENGL,
-                                    mDisplayRotation);
+                                    displayRotation);
                             if (lastFramePose.statusCode == TangoPoseData.POSE_VALID) {
                                 // Update the camera pose from the renderer
-                                mRenderer.updateRenderCameraPose(lastFramePose);
-                                mCameraPoseTimestamp = lastFramePose.timestamp;
+                                renderer.updateRenderCameraPose(lastFramePose);
+                                cameraPoseTimestamp = lastFramePose.timestamp;
 
                                 minimap.setCameraPosition(lastFramePose);
                                 minimap.postInvalidate();
 
-                                mRenderer.getObjectAt(mSurfaceView.getWidth() / 2, mSurfaceView.getHeight() / 2);
+                                renderer.getObjectAt(mSurfaceView.getWidth() / 2, mSurfaceView.getHeight() / 2);
                             } else {
                                 // When the pose status is not valid, it indicates the tracking has
                                 // been lost. In this case, we simply stop rendering.
@@ -562,7 +562,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 // This is also the place to display UI to suggest the user walk
                                 // to recover tracking.
                                 Log.w(TAG, "Can't get device pose at time: " +
-                                        mRgbTimestampGlThread);
+                                        rgbTimestampGlThread);
                             }
                         }
                     }
@@ -591,8 +591,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             }
         });
 
-        mRenderer.updateColorCameraTextureUvGlThread(mDisplayRotation);
-        mSurfaceView.setSurfaceRenderer(mRenderer);
+        renderer.updateColorCameraTextureUvGlThread(displayRotation);
+        mSurfaceView.setSurfaceRenderer(renderer);
     }
 
     /**
@@ -600,7 +600,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
      */
     private void setDisplayRotation() {
         Display display = getWindowManager().getDefaultDisplay();
-        mDisplayRotation = display.getRotation();
+        displayRotation = display.getRotation();
     }
 
     /**
@@ -784,7 +784,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         public void onClick(View v) {
                             if (previousObject != null) {
                                 FixturesRepository.getInstance().removeFixture(previousObject.getName());
-                                mRenderer.removeObject(previousObject.getName());
+                                renderer.removeObject(previousObject.getName());
                                 minimap.postInvalidate();
                             }
                         }
@@ -801,7 +801,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
     private void setFixtureDistance() {
         if (previousObject != null) {
-            Vector3 cameraPosition = mRenderer.getCameraPosition();
+            Vector3 cameraPosition = renderer.getCameraPosition();
             final double distance = Math.sqrt(Math.pow(previousObject.getX() - cameraPosition.x, 2) + Math.pow(previousObject.getY() - cameraPosition.y, 2));
             runOnUiThread(new Runnable() {
                 @Override

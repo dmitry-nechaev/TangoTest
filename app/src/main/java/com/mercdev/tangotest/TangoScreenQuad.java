@@ -6,7 +6,7 @@ import org.rajawali3d.primitives.ScreenQuad;
 
 
 public class TangoScreenQuad extends ScreenQuad {
-      @Override
+    @Override
     public void renderColorPicking(Camera camera, Material pickingMaterial) {
     }
 }
