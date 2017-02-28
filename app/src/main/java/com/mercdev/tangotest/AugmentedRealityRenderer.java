@@ -54,12 +54,12 @@ public class AugmentedRealityRenderer extends Renderer {
     private float[] textureCoords0 = new float[]{0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.0F};
 
     // Rajawali texture used to render the Tango color camera.
-    private ATexture mTangoCameraTexture;
+    private ATexture tangoCameraTexture;
 
     // Keeps track of whether the scene camera has been configured.
-    private boolean mSceneCameraConfigured;
+    private boolean sceneCameraConfigured;
 
-    private TangoScreenQuad mBackgroundQuad;
+    private TangoScreenQuad backgroundQuad;
     private ArrayList<Object3D> objects = new ArrayList<>();
     private Matrix4 transformFloorMatrix4;
 
@@ -81,21 +81,21 @@ public class AugmentedRealityRenderer extends Renderer {
         Material tangoCameraMaterial = new Material();
         tangoCameraMaterial.setColorInfluence(0);
 
-        if (mBackgroundQuad == null) {
-            mBackgroundQuad = new TangoScreenQuad();
-            mBackgroundQuad.getGeometry().setTextureCoords(textureCoords0);
+        if (backgroundQuad == null) {
+            backgroundQuad = new TangoScreenQuad();
+            backgroundQuad.getGeometry().setTextureCoords(textureCoords0);
         }
         // We need to use Rajawali's {@code StreamingTexture} since it sets up the texture
         // for GL_TEXTURE_EXTERNAL_OES rendering
-        mTangoCameraTexture =
+        tangoCameraTexture =
                 new StreamingTexture("camera", (StreamingTexture.ISurfaceListener) null);
         try {
-            tangoCameraMaterial.addTexture(mTangoCameraTexture);
-            mBackgroundQuad.setMaterial(tangoCameraMaterial);
+            tangoCameraMaterial.addTexture(tangoCameraTexture);
+            backgroundQuad.setMaterial(tangoCameraMaterial);
         } catch (ATexture.TextureException e) {
             Log.e(TAG, "Exception creating texture for RGB camera contents", e);
         }
-        getCurrentScene().addChildAt(mBackgroundQuad, 0);
+        getCurrentScene().addChildAt(backgroundQuad, 0);
 
         // Add a directional light in an arbitrary direction.
         DirectionalLight light = new DirectionalLight(1, 0.2, -1);
@@ -142,14 +142,14 @@ public class AugmentedRealityRenderer extends Renderer {
      * This must be run in the OpenGL thread.
      */
     public void updateColorCameraTextureUvGlThread(int rotation) {
-        if (mBackgroundQuad == null) {
-            mBackgroundQuad = new TangoScreenQuad();
+        if (backgroundQuad == null) {
+            backgroundQuad = new TangoScreenQuad();
         }
 
         float[] textureCoords =
                 TangoSupport.getVideoOverlayUVBasedOnDisplayRotation(textureCoords0, rotation);
-        mBackgroundQuad.getGeometry().setTextureCoords(textureCoords, true);
-        mBackgroundQuad.getGeometry().reload();
+        backgroundQuad.getGeometry().setTextureCoords(textureCoords, true);
+        backgroundQuad.getGeometry().reload();
     }
 
     /**
@@ -169,13 +169,17 @@ public class AugmentedRealityRenderer extends Renderer {
         getCurrentCamera().setPosition(translation[0], translation[1], translation[2]);
     }
 
+    public Vector3 getCameraPosition() {
+        return getCurrentCamera().getPosition();
+    }
+
     /**
      * It returns the ID currently assigned to the texture where the Tango color camera contents
      * should be rendered.
      * NOTE: This must be called from the OpenGL render thread - it is not thread safe.
      */
     public int getTextureId() {
-        return mTangoCameraTexture == null ? -1 : mTangoCameraTexture.getTextureId();
+        return tangoCameraTexture == null ? -1 : tangoCameraTexture.getTextureId();
     }
 
     /**
@@ -185,11 +189,11 @@ public class AugmentedRealityRenderer extends Renderer {
     @Override
     public void onRenderSurfaceSizeChanged(GL10 gl, int width, int height) {
         super.onRenderSurfaceSizeChanged(gl, width, height);
-        mSceneCameraConfigured = false;
+        sceneCameraConfigured = false;
     }
 
     public boolean isSceneCameraConfigured() {
-        return mSceneCameraConfigured;
+        return sceneCameraConfigured;
     }
 
     /**
@@ -212,13 +216,13 @@ public class AugmentedRealityRenderer extends Renderer {
     }
 
     public void switchCameraBackgroundVisibilyty() {
-        if (mBackgroundQuad != null) {
-            mBackgroundQuad.setVisible(!mBackgroundQuad.isVisible());
+        if (backgroundQuad != null) {
+            backgroundQuad.setVisible(!backgroundQuad.isVisible());
         }
     }
 
     public boolean isBackgroundVisible() {
-        return mBackgroundQuad != null && mBackgroundQuad.isVisible();
+        return backgroundQuad != null && backgroundQuad.isVisible();
     }
 
 
@@ -239,12 +243,12 @@ public class AugmentedRealityRenderer extends Renderer {
 
     public void removeObject(String name) {
         if (!TextUtils.isEmpty(name))
-        for (Object3D object3D : objects) {
-            if (name.equals(object3D.getName())) {
-                getCurrentScene().removeChild(object3D);
-                objects.remove(object3D);
-                break;
+            for (Object3D object3D : objects) {
+                if (name.equals(object3D.getName())) {
+                    getCurrentScene().removeChild(object3D);
+                    objects.remove(object3D);
+                    break;
+                }
             }
-        }
     }
 }
