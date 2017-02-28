@@ -66,7 +66,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private FrameLayout coverFrame;
     private TextView coverFrameText;
     private Minimap minimap;
-    private View nothingTargeted, targetedFixture;
+    private View nothingTargeted, targetedFixture, deleteFixture, modifyFixture;
     private View marker;
 
     private AugmentedRealityRenderer mRenderer;
@@ -180,8 +180,10 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             }
         });
 
-        nothingTargeted = findViewById(R.id.nothing_targeted);
-        targetedFixture = findViewById(R.id.targeted_fixture);
+        nothingTargeted = findViewById(R.id.nothing_targeted_container);
+        targetedFixture = findViewById(R.id.targeted_fixture_container);
+        deleteFixture = findViewById(R.id.delete_fixture_container);
+        modifyFixture = findViewById(R.id.modify_fixture_container);
         marker = findViewById(R.id.marker);
 
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
@@ -724,6 +726,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             public void run() {
                 nothingTargeted.setVisibility(View.VISIBLE);
                 targetedFixture.setVisibility(View.GONE);
+                deleteFixture.setVisibility(View.GONE);
+                modifyFixture.setVisibility(View.GONE);
             }
         });
     }
@@ -749,18 +753,50 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 targetedFixture.findViewById(R.id.fixture_delete).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (previousObject != null) {
-                            FixturesRepository.getInstance().removeFixture(previousObject.getName());
-                            mRenderer.removeObject(previousObject.getName());
-                            minimap.postInvalidate();
-                        }
+                        showDeleteFixture(fixture);
                     }
                 });
 
                 nothingTargeted.setVisibility(View.GONE);
                 targetedFixture.setVisibility(View.VISIBLE);
+                deleteFixture.setVisibility(View.GONE);
+                modifyFixture.setVisibility(View.GONE);
             }
         });
+    }
+
+    private void showDeleteFixture(final Fixture fixture) {
+        if (fixture != null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ((TextView) deleteFixture.findViewById(R.id.delete_fixture_name))
+                            .setText(String.format(getResources().getString(R.string.fixture_dialog_delete_fixture), fixture.getName()));
+
+                    deleteFixture.findViewById(R.id.delete_fixture_no).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            showFixtureInformation(fixture);
+                        }
+                    });
+                    deleteFixture.findViewById(R.id.delete_fixture_yes).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (previousObject != null) {
+                                FixturesRepository.getInstance().removeFixture(previousObject.getName());
+                                mRenderer.removeObject(previousObject.getName());
+                                minimap.postInvalidate();
+                            }
+                        }
+                    });
+
+                    nothingTargeted.setVisibility(View.GONE);
+                    targetedFixture.setVisibility(View.GONE);
+                    deleteFixture.setVisibility(View.VISIBLE);
+                    modifyFixture.setVisibility(View.GONE);
+                }
+            });
+        }
     }
 
     private void setFixtureDistance() {

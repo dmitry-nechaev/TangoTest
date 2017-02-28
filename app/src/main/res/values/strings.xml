@@ -12,11 +12,19 @@
 
     <string name="fixture_dialog_nothing_targeted">Nothing targeted</string>
     <string name="fixture_dialog_nothing_targeted_hint">(Point the target at a map object to make changes)</string>
+
     <string name="fixture_dialog_targeted_distance" formatted="false">Distance: %.2f m</string>
     <string name="fixture_dialog_targeted_height" formatted="false">Height: %.2f m</string>
     <string name="fixture_dialog_targeted_width" formatted="false">Width: %.2f m</string>
     <string name="fixture_dialog_targeted_depth" formatted="false">Depth: %.2f m</string>
     <string name="fixture_dialog_modify">Modify</string>
     <string name="fixture_dialog_delete">Delete</string>
+    <string name="fixture_dialog_save">Save</string>
+
+    <string name="fixture_dialog_delete_fixture" formatted="false">Delete %s</string>
+    <string name="fixture_dialog_delete_fixture_text">Are you sure you want to delete this fixture?</string>
+
+    <string name="fixture_dialog_modify_fixture" formatted="false">Modify %s</string>
+
 
 </resources>
