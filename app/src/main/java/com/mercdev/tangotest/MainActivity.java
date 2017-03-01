@@ -345,8 +345,6 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         if (uuidAdf.size() > 0) {
             config.putString(TangoConfig.KEY_STRING_AREADESCRIPTION,
                     uuidAdf.get(uuidAdf.size() - 1));
-        } else {
-            config.putBoolean(TangoConfig.KEY_BOOLEAN_LEARNINGMODE, true);
         }
 
         return config;
