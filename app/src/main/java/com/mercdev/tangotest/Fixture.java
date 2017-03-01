@@ -1,13 +1,12 @@
 package com.mercdev.tangotest;
 
 import android.graphics.Point;
-import android.graphics.Rect;
 
 /**
  * Created by nechaev on 13.02.2017.
  */
 
-public class Fixture implements Cloneable{
+public class Fixture implements Cloneable {
 
     private Point position;
     private String name;
@@ -39,6 +38,10 @@ public class Fixture implements Cloneable{
 
     public void setDepth(int depth) {
         this.depth = depth;
+    }
+
+    public void setRotationAngle(double rotationAngle) {
+        this.rotationAngle = rotationAngle;
     }
 
     public String getName() {
@@ -73,9 +76,9 @@ public class Fixture implements Cloneable{
     public Object clone() {
         Object result;
         try {
-            result =  super.clone();
+            result = super.clone();
         } catch (CloneNotSupportedException e) {
-            result =  new Fixture(name, position, height, width, depth, rotationAngle, color);
+            result = new Fixture(name, position, height, width, depth, rotationAngle, color);
         }
         return result;
     }

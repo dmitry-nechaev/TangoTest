@@ -42,6 +42,7 @@ import com.projecttango.tangosupport.TangoSupport;
 
 import org.rajawali3d.Object3D;
 import org.rajawali3d.math.Matrix4;
+import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.scene.ASceneFrameCallback;
 import org.rajawali3d.util.OnObjectPickedListener;
@@ -560,8 +561,15 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     double z = startModificationFixtureZ + dz;
                                     previousObject.setPosition(x, previousObject.getY(), z);
                                     FixturesRepository.getInstance().getFixture(startModificationFixture.getName())
-                                            .setPosition(new Point((int) (startModificationFixture.getPosition().x  + dx * 100f),
-                                                    (int) (startModificationFixture.getPosition().y  + dz  * 100f)));
+                                            .setPosition(new Point((int) (startModificationFixture.getPosition().x + dx * 100f),
+                                                    (int) (startModificationFixture.getPosition().y + dz * 100f)));
+
+                                    float[] rotation = lastFramePose.getRotationAsFloats();
+                                    Quaternion q = new Quaternion(rotation[3], rotation[0], rotation[1], rotation[2]);
+                                    double rotationAngle = Math.toDegrees(-q.getRotationY());
+                                    previousObject.setRotY(rotationAngle);
+                                    FixturesRepository.getInstance().getFixture(startModificationFixture.getName())
+                                            .setRotationAngle(rotationAngle);
 
                                     minimap.processFixtures();
                                 }
