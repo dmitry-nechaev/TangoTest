@@ -7,7 +7,7 @@ import android.graphics.Rect;
  * Created by nechaev on 13.02.2017.
  */
 
-public class Fixture {
+public class Fixture implements Cloneable{
 
     private Point position;
     private String name;
@@ -23,6 +23,22 @@ public class Fixture {
         this.depth = depth;
         this.rotationAngle = rotationAngle;
         this.color = color;
+    }
+
+    public void setPosition(Point position) {
+        this.position = position;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
     }
 
     public String getName() {
@@ -51,5 +67,16 @@ public class Fixture {
 
     public int getColor() {
         return color;
+    }
+
+    @Override
+    public Object clone() {
+        Object result;
+        try {
+            result =  super.clone();
+        } catch (CloneNotSupportedException e) {
+            result =  new Fixture(name, position, height, width, depth, rotationAngle, color);
+        }
+        return result;
     }
 }

@@ -88,6 +88,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
     private int displayRotation;
 
+    private double startModificationCameraX, startModificationCameraZ, startModificationFixtureX, startModificationFixtureZ;
+    private Fixture startModificationFixture;
+
     /**
      * Use Tango camera intrinsics to calculate the projection Matrix for the Rajawali scene.
      */
@@ -550,6 +553,18 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 // Update the camera pose from the renderer
                                 renderer.updateRenderCameraPose(lastFramePose);
                                 cameraPoseTimestamp = lastFramePose.timestamp;
+                                if (modifyFixture.getVisibility() == View.VISIBLE && previousObject != null) {
+                                    double dx = renderer.getCameraPosition().x - startModificationCameraX;
+                                    double dz = renderer.getCameraPosition().z - startModificationCameraZ;
+                                    double x = startModificationFixtureX + dx;
+                                    double z = startModificationFixtureZ + dz;
+                                    previousObject.setPosition(x, previousObject.getY(), z);
+                                    FixturesRepository.getInstance().getFixture(startModificationFixture.getName())
+                                            .setPosition(new Point((int) (startModificationFixture.getPosition().x  + dx * 100f),
+                                                    (int) (startModificationFixture.getPosition().y  + dz  * 100f)));
+
+                                    minimap.processFixtures();
+                                }
 
                                 minimap.setCameraPosition(lastFramePose);
                                 minimap.postInvalidate();
@@ -694,10 +709,19 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     @Override
     public void onNoObjectPicked() {
         if (previousObject != null) {
+            if (modifyFixture.getVisibility() == View.VISIBLE) {
+                cancelFixtureModifications();
+            }
+
             showNothingTargeted();
             changeMarkerColor(Color.RED);
 
-            previousObject = null;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    previousObject = null;
+                }
+            });
         }
     }
 
@@ -747,7 +771,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 targetedFixture.findViewById(R.id.fixture_modify).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
+                        showModifyFixture(fixture);
                     }
                 });
                 targetedFixture.findViewById(R.id.fixture_delete).setOnClickListener(new View.OnClickListener() {
@@ -799,6 +823,43 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         }
     }
 
+    private void showModifyFixture(final Fixture fixture) {
+        if (fixture != null) {
+            startModificationFixture = (Fixture) fixture.clone();
+            startModificationCameraX = renderer.getCameraPosition().x;
+            startModificationCameraZ = renderer.getCameraPosition().z;
+            startModificationFixtureX = previousObject.getX();
+            startModificationFixtureZ = previousObject.getZ();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    ((TextView) modifyFixture.findViewById(R.id.modify_fixture_name))
+                            .setText(String.format(getResources().getString(R.string.fixture_dialog_delete_fixture), fixture.getName()));
+
+                    modifyFixture.findViewById(R.id.modify_fixture_cancel).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            cancelFixtureModifications();
+                            showFixtureInformation(fixture);
+                        }
+                    });
+                    modifyFixture.findViewById(R.id.modify_fixture_save).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            //TODO apply modifications
+                            showFixtureInformation(fixture);
+                        }
+                    });
+
+                    nothingTargeted.setVisibility(View.GONE);
+                    targetedFixture.setVisibility(View.GONE);
+                    deleteFixture.setVisibility(View.GONE);
+                    modifyFixture.setVisibility(View.VISIBLE);
+                }
+            });
+        }
+    }
+
     private void setFixtureDistance() {
         if (previousObject != null) {
             Vector3 cameraPosition = renderer.getCameraPosition();
@@ -811,5 +872,17 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 }
             });
         }
+    }
+
+    private void cancelFixtureModifications() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                FixturesRepository.getInstance().updateFixture(startModificationFixture);
+                previousObject.setPosition(startModificationFixtureX, previousObject.getY(), startModificationFixtureZ);
+                minimap.processFixtures();
+                minimap.postInvalidate();
+            }
+        });
     }
 }
