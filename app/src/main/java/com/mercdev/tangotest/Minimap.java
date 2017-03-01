@@ -40,21 +40,6 @@ public class Minimap extends View {
 
     @Override
     public void onDraw(Canvas canvas) {
-        ArrayList<Fixture> fixtures = FixturesRepository.getInstance().getFixtures();
-        for (Fixture fixture : fixtures) {
-            canvas.save();
-            paint.setColor(Color.BLACK);
-            int x1 = (int) ((-minX + fixture.getPosition().x) * delta);
-            int y1 = (int) ((-minY + fixture.getPosition().y) * delta);
-            int x2 = (int) ((-minX + fixture.getPosition().x + fixture.getWidth()) * delta);
-            int y2 = (int) ((-minY + fixture.getPosition().y + fixture.getDepth()) * delta);
-            canvas.rotate((float) fixture.getRotationAngle(),
-                    (-minX + fixture.getPosition().x + fixture.getWidth() * 0.5f) * delta,
-                    (-minY + fixture.getPosition().y + fixture.getDepth() * 0.5f) * delta);
-            canvas.drawRect(new Rect(x1, y1, x2, y2), paint);
-            canvas.restore();
-        }
-
         float cx = (-minX + cameraX) * delta;
         float cy = (-minY + cameraY) * delta;
         float radius = 30 * delta;
@@ -69,6 +54,21 @@ public class Minimap extends View {
                 -90 - sweepAngle * 0.5f - (float) Math.toDegrees(cameraRotation), sweepAngle, true, paint);
         paint.setAlpha(255);
         canvas.drawCircle(cx, cy, radius, paint);
+
+        ArrayList<Fixture> fixtures = FixturesRepository.getInstance().getFixtures();
+        for (Fixture fixture : fixtures) {
+            canvas.save();
+            paint.setColor(Color.BLACK);
+            int x1 = (int) ((-minX + fixture.getPosition().x) * delta);
+            int y1 = (int) ((-minY + fixture.getPosition().y) * delta);
+            int x2 = (int) ((-minX + fixture.getPosition().x + fixture.getWidth()) * delta);
+            int y2 = (int) ((-minY + fixture.getPosition().y + fixture.getDepth()) * delta);
+            canvas.rotate((float) fixture.getRotationAngle(),
+                    (-minX + fixture.getPosition().x + fixture.getWidth() * 0.5f) * delta,
+                    (-minY + fixture.getPosition().y + fixture.getDepth() * 0.5f) * delta);
+            canvas.drawRect(new Rect(x1, y1, x2, y2), paint);
+            canvas.restore();
+        }
     }
 
     public void processFixtures() {

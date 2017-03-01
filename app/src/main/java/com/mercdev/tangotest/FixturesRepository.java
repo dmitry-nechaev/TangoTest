@@ -58,6 +58,7 @@ public class FixturesRepository {
                     fixture.setHeight(newFixture.getHeight());
                     fixture.setWidth(newFixture.getWidth());
                     fixture.setDepth(newFixture.getDepth());
+                    fixture.setRotationAngle(newFixture.getRotationAngle());
                     break;
                 }
             }

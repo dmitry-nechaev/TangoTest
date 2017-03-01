@@ -89,7 +89,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
     private int displayRotation;
 
-    private double startModificationCameraX, startModificationCameraZ, startModificationFixtureX, startModificationFixtureZ;
+    private double startModificationCameraX, startModificationCameraZ, startModificationFixtureX, startModificationFixtureZ, startModificationRotationAngle;
     private Fixture startModificationFixture;
 
     /**
@@ -567,9 +567,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     float[] rotation = lastFramePose.getRotationAsFloats();
                                     Quaternion q = new Quaternion(rotation[3], rotation[0], rotation[1], rotation[2]);
                                     double rotationAngle = Math.toDegrees(-q.getRotationY());
-                                    previousObject.setRotY(rotationAngle);
+                                    previousObject.setRotY(/*startModificationRotationAngle + */rotationAngle);
                                     FixturesRepository.getInstance().getFixture(startModificationFixture.getName())
-                                            .setRotationAngle(rotationAngle);
+                                            .setRotationAngle(/*startModificationFixture.getRotationAngle() + */rotationAngle);
 
                                     minimap.processFixtures();
                                 }
@@ -701,22 +701,26 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
     @Override
     public void onObjectPicked(@NonNull Object3D object) {
-        if (object != null) {
-            Fixture fixture = FixturesRepository.getInstance().getFixture(object.getName());
-            if (fixture != null && (previousObject == null || !previousObject.getName().equals(object.getName()))) {
-                previousObject = object;
-                showFixtureInformation(fixture);
-                changeMarkerColor(Color.GREEN);
+        if (modifyFixture.getVisibility() != View.VISIBLE && deleteFixture.getVisibility() != View.VISIBLE) {
+            if (object != null) {
+                Fixture fixture = FixturesRepository.getInstance().getFixture(object.getName());
+                if (fixture != null && (previousObject == null || !previousObject.getName().equals(object.getName()))) {
+                    previousObject = object;
+                    showFixtureInformation(fixture);
+                    changeMarkerColor(Color.GREEN);
+                }
+                setFixtureDistance();
+            } else {
+                onNoObjectPicked();
             }
-            setFixtureDistance();
-        } else {
-            onNoObjectPicked();
         }
     }
 
     @Override
     public void onNoObjectPicked() {
-        if (previousObject != null) {
+        if (modifyFixture.getVisibility() != View.VISIBLE
+                && deleteFixture.getVisibility() != View.VISIBLE
+                && previousObject != null) {
             if (modifyFixture.getVisibility() == View.VISIBLE) {
                 cancelFixtureModifications();
             }
@@ -842,7 +846,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 @Override
                 public void run() {
                     ((TextView) modifyFixture.findViewById(R.id.modify_fixture_name))
-                            .setText(String.format(getResources().getString(R.string.fixture_dialog_delete_fixture), fixture.getName()));
+                            .setText(String.format(getResources().getString(R.string.fixture_dialog_modify_fixture), fixture.getName()));
 
                     modifyFixture.findViewById(R.id.modify_fixture_cancel).setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -888,6 +892,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             public void run() {
                 FixturesRepository.getInstance().updateFixture(startModificationFixture);
                 previousObject.setPosition(startModificationFixtureX, previousObject.getY(), startModificationFixtureZ);
+                previousObject.setRotY(startModificationRotationAngle);
                 minimap.processFixtures();
                 minimap.postInvalidate();
             }
