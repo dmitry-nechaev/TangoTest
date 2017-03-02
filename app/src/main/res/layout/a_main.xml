@@ -5,18 +5,18 @@
     android:background="@color/colorPrimaryDark"
     android:orientation="vertical">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="?android:attr/actionBarSize"
         android:background="@color/colorPrimary"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:gravity="center_vertical">
 
         <ImageButton
             android:id="@+id/home"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
+            android:layout_alignParentLeft="true"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_home" />
 
@@ -25,6 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
+            android:layout_toRightOf="@id/home"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_camera" />
 
@@ -33,6 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
+            android:layout_toRightOf="@id/switch_camera_visibility"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_glasses" />
 
@@ -41,18 +43,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
+            android:layout_toRightOf="@id/switch_3d_visibility"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_map" />
 
         <ImageButton
-            android:id="@+id/adf_remove_button"
+            android:id="@+id/exit_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
+            android:layout_alignParentRight="true"
             android:background="@android:color/transparent"
-            android:src="@drawable/ic_remove_file" />
+            android:src="@drawable/ic_exit" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
     <FrameLayout
         android:id="@+id/cover_frame"

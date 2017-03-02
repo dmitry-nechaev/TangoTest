@@ -26,5 +26,12 @@
 
     <string name="fixture_dialog_modify_fixture" formatted="false">Modify %s</string>
 
+    <string name="upload_adf_file">ADF file has uploaded - %s</string>
+    <string name="noupload_adf_file">Could not find ADF file</string>
+
+    <string name="exit_dialog_title">Save and exit</string>
+    <string name="exit_dialog_message">Do you want to save current area description to ADF file?</string>
+    <string name="dialog_yes_button_title">Yes</string>
+    <string name="dialog_no_button_title">No</string>
 
 </resources>

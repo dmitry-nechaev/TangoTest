@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
@@ -26,7 +27,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.atap.tangoservice.Tango;
-import com.google.atap.tangoservice.TangoAreaDescriptionMetaData;
 import com.google.atap.tangoservice.TangoCameraIntrinsics;
 import com.google.atap.tangoservice.TangoConfig;
 import com.google.atap.tangoservice.TangoCoordinateFramePair;
@@ -58,7 +58,12 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private static final int COLOR_CAMERA_ID = 0;
 
     private static final String CAMERA_PERMISSION = Manifest.permission.CAMERA;
-    private static final int CAMERA_PERMISSION_CODE = 0;
+    private static final String WRITE_TO_STORAGE_PERMISSION = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+    private static final int NECESSARY_PERMISSIONS_CODE = 0;
+
+    private static final String ADF_LOAD_SAVE_PERMISSION = Tango.PERMISSIONTYPE_ADF_LOAD_SAVE;
+    private static final int ADF_LOAD_SAVE_PERMISSION_CODE = 100;
+
     private static final PointF FLOOR_DEFINITION_POINT = new PointF(0.5f, 0.75f);
 
     private SurfaceView mSurfaceView;
@@ -87,6 +92,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private boolean isCreateSurfaceAndScene = false;
 
     private int displayRotation;
+    private ArrayList<String> createdAdfFileUuid = new ArrayList<>();
+
 
     /**
      * Use Tango camera intrinsics to calculate the projection Matrix for the Rajawali scene.
@@ -199,18 +206,46 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 v.setAlpha(!isMapVisible ? 1f : .4f);
             }
         });
+
+        ImageButton exitButton = (ImageButton) findViewById(R.id.exit_button);
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isLocalized) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle(R.string.exit_dialog_title);
+                    builder.setMessage(R.string.exit_dialog_message);
+                    builder.setNegativeButton(R.string.dialog_no_button_title, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            finish();
+                        }
+                    });
+                    builder.setPositiveButton(R.string.dialog_yes_button_title, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            final String adfUuid = tango.saveAreaDescription();
+                            createdAdfFileUuid.add(adfUuid);
+                            ImportExportADFHelper.exportAreaDescriptionFile(MainActivity.this, adfUuid, ImportExportADFHelper.getAdfFolder().getPath());
+                        }
+                    });
+                    builder.create().show();
+                } else {
+                    finish();
+                }
+            }
+        });
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
-        if (ContextCompat.checkSelfPermission(this, Tango.PERMISSIONTYPE_ADF_LOAD_SAVE) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, ADF_LOAD_SAVE_PERMISSION) == PackageManager.PERMISSION_GRANTED) {
             checkPermissionsAndBindTango();
         } else {
             startActivityForResult(
-                    Tango.getRequestPermissionIntent(Tango.PERMISSIONTYPE_ADF_LOAD_SAVE),
-                    Tango.TANGO_INTENT_ACTIVITYCODE);
+                    Tango.getRequestPermissionIntent(ADF_LOAD_SAVE_PERMISSION),
+                    ADF_LOAD_SAVE_PERMISSION_CODE);
         }
     }
 
@@ -219,52 +254,72 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         super.onStop();
         if (mSurfaceView != null) {
             mSurfaceView.onPause();
+        }
 
-            // Synchronize against disconnecting while the service is being used in the OpenGL thread or
-            // in the UI thread.
-            // NOTE: DO NOT lock against this same object in the Tango callback thread. Tango.disconnect
-            // will block here until all Tango callback calls are finished. If you lock against this
-            // object in a Tango callback thread it will cause a deadlock.
-            synchronized (this) {
-                if (isConnected) {
-                    try {
-                        if (isLocalized && tango.getConfig(TangoConfig.CONFIG_TYPE_CURRENT).getBoolean(TangoConfig.KEY_BOOLEAN_LEARNINGMODE)) {
-                            String adfUuid = tango.saveAreaDescription();
-                            TangoAreaDescriptionMetaData metadata = tango.loadAreaDescriptionMetaData(adfUuid);
-                            tango.saveAreaDescriptionMetadata(adfUuid, metadata);
-                        }
-                        isLocalized = false;
-                        isConnected = false;
-                        tango.disconnectCamera(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
-                        // We need to invalidate the connected texture ID so that we cause a
-                        // re-connection in the OpenGL thread after resume.
-                        connectedTextureIdGlThread = INVALID_TEXTURE_ID;
-                        tango.disconnect();
-                        tango = null;
-                    } catch (TangoErrorException e) {
-                        Log.e(TAG, getString(R.string.exception_tango_error), e);
+        // Synchronize against disconnecting while the service is being used in the OpenGL thread or
+        // in the UI thread.
+        // NOTE: DO NOT lock against this same object in the Tango callback thread. Tango.disconnect
+        // will block here until all Tango callback calls are finished. If you lock against this
+        // object in a Tango callback thread it will cause a deadlock.
+        synchronized (this) {
+            if (isConnected) {
+                try {
+                    isLocalized = false;
+                    isConnected = false;
+                    tango.disconnectCamera(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
+                    // We need to invalidate the connected texture ID so that we cause a
+                    // re-connection in the OpenGL thread after resume.
+                    connectedTextureIdGlThread = INVALID_TEXTURE_ID;
+                    tango.disconnect();
+
+                    for (String adfFileUuid : createdAdfFileUuid) {
+                        tango.deleteAreaDescription(adfFileUuid);
                     }
+
+                    tango = null;
+                } catch (TangoErrorException e) {
+                    Log.e(TAG, getString(R.string.exception_tango_error), e);
                 }
             }
         }
     }
 
     private void checkPermissionsAndBindTango() {
-        if (hasCameraPermission()) {
+        if (hasNecessaryPermissions()) {
             showCoverFrame(R.string.process_localization);
-            bindTangoService();
+            importADFFileToTango();
         } else {
             requestCameraPermission();
         }
     }
 
+    private void importADFFileToTango() {
+        tango = new Tango(MainActivity.this, new Runnable() {
+            @Override
+            public void run() {
+                String adfLocalPath = ImportExportADFHelper.getLastAdfFilePath();
+                if (!TextUtils.isEmpty(adfLocalPath)) {
+                    ImportExportADFHelper.importAreaDescriptionFile(MainActivity.this, adfLocalPath);
+                } else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, R.string.noupload_adf_file, Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    bindTangoService(null);
+                }
+            }
+        });
+    }
+
     /**
      * Initialize Tango Service as a normal Android Service.
      */
-    private void bindTangoService() {
+    private void bindTangoService(final String adfUuid) {
         // Since we call tango.disconnect() in onStop, this will unbind Tango Service, so every
         // time when onStart gets called, we should create a new Tango object.
-        tango = new Tango(getApplicationContext(), new Runnable() {
+        tango = new Tango(MainActivity.this, new Runnable() {
             // Pass in a Runnable to be called from UI thread when Tango is ready, this Runnable
             // will be running on a new thread.
             // When Tango is ready, we can call Tango functions safely here only when there
@@ -276,7 +331,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 synchronized (MainActivity.this) {
                     try {
                         TangoSupport.initialize();
-                        config = setupTangoConfig(tango);
+                        config = setupTangoConfig(tango, adfUuid);
                         tango.connect(config);
                         startupTango();
                         isConnected = true;
@@ -289,32 +344,6 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         Log.e(TAG, getString(R.string.exception_tango_invalid), e);
                     }
                 }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        synchronized (MainActivity.this) {
-                            final ImageButton adfRemoveButton = (ImageButton) findViewById(R.id.adf_remove_button);
-                            final ArrayList<String> uuidAdf = tango.listAreaDescriptions();
-                            if (uuidAdf.size() == 0) {
-                                adfRemoveButton.setVisibility(View.INVISIBLE);
-                            } else {
-                                adfRemoveButton.setVisibility(View.VISIBLE);
-                                adfRemoveButton.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        if (uuidAdf.size() > 0) {
-                                            for (String uuid : uuidAdf) {
-                                                tango.deleteAreaDescription(uuid);
-                                            }
-                                            adfRemoveButton.setVisibility(View.INVISIBLE);
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
             }
         });
     }
@@ -323,7 +352,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
      * Sets up the tango configuration object. Make sure tango object is initialized before
      * making this call.
      */
-    private TangoConfig setupTangoConfig(Tango tango) {
+    private TangoConfig setupTangoConfig(Tango tango, String adfUuid) {
         // Use default configuration for Tango Service, plus color camera, low latency
         // IMU integration and drift correction.
         TangoConfig config = tango.getConfig(TangoConfig.CONFIG_TYPE_DEFAULT);
@@ -340,11 +369,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         config.putInt(TangoConfig.KEY_INT_DEPTH_MODE, TangoConfig.TANGO_DEPTH_MODE_POINT_CLOUD);
 
         config.putBoolean(TangoConfig.KEY_BOOLEAN_LEARNINGMODE, true);
-
-        ArrayList<String> uuidAdf = tango.listAreaDescriptions();
-        if (uuidAdf.size() > 0) {
-            config.putString(TangoConfig.KEY_STRING_AREADESCRIPTION,
-                    uuidAdf.get(uuidAdf.size() - 1));
+        if (!TextUtils.isEmpty(adfUuid)) {
+            config.putString(TangoConfig.KEY_STRING_AREADESCRIPTION, adfUuid);
         }
 
         return config;
@@ -450,7 +476,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
             @Override
             public void onTangoEvent(TangoEvent event) {
-                // We are not using onTangoEvent for this app.
+                if (event.eventKey.equals(TangoEvent.KEY_AREA_DESCRIPTION_SAVE_PROGRESS)) {
+                    Log.d(TAG, "Progress save file - " + event.eventValue);
+                }
             }
 
             @Override
@@ -606,9 +634,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     /**
      * Check we have the necessary permissions for this app.
      */
-    private boolean hasCameraPermission() {
-        return ContextCompat.checkSelfPermission(this, CAMERA_PERMISSION) ==
-                PackageManager.PERMISSION_GRANTED;
+    private boolean hasNecessaryPermissions() {
+        return ContextCompat.checkSelfPermission(this, CAMERA_PERMISSION) == PackageManager.PERMISSION_GRANTED
+               && ContextCompat.checkSelfPermission(this, WRITE_TO_STORAGE_PERMISSION) == PackageManager.PERMISSION_GRANTED;
     }
 
     /**
@@ -616,10 +644,11 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
      */
     private void requestCameraPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, CAMERA_PERMISSION)) {
+            showRequestPermissionRationale(); }
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, WRITE_TO_STORAGE_PERMISSION)) {
             showRequestPermissionRationale();
         } else {
-            ActivityCompat.requestPermissions(this, new String[]{CAMERA_PERMISSION},
-                    CAMERA_PERMISSION_CODE);
+            ActivityCompat.requestPermissions(this, new String[]{CAMERA_PERMISSION, WRITE_TO_STORAGE_PERMISSION}, NECESSARY_PERMISSIONS_CODE);
         }
     }
 
@@ -629,12 +658,12 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
      */
     private void showRequestPermissionRationale() {
         final AlertDialog dialog = new AlertDialog.Builder(this)
-                .setMessage("Java Augmented Reality Example requires camera permission")
+                .setMessage("The application requires camera and writing to the SD card permission")
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         ActivityCompat.requestPermissions(MainActivity.this,
-                                new String[]{CAMERA_PERMISSION}, CAMERA_PERMISSION_CODE);
+                                new String[]{CAMERA_PERMISSION, WRITE_TO_STORAGE_PERMISSION}, NECESSARY_PERMISSIONS_CODE);
                     }
                 })
                 .create();
@@ -644,10 +673,10 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
-        if (hasCameraPermission()) {
+        if (hasNecessaryPermissions()) {
             checkPermissionsAndBindTango();
         } else {
-            Toast.makeText(this, "Java Augmented Reality Example requires camera permission",
+            Toast.makeText(this, "The application requires camera and writing to the SD card permission",
                     Toast.LENGTH_LONG).show();
         }
     }
@@ -667,12 +696,25 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == Tango.TANGO_INTENT_ACTIVITYCODE) {
+
+        if (requestCode == ADF_LOAD_SAVE_PERMISSION_CODE) {
             if (resultCode == RESULT_CANCELED) {
                 finish();
             } else {
                 checkPermissionsAndBindTango();
             }
+        } else if (requestCode == ImportExportADFHelper.ADF_IMPORT_PERMISSION_CODE) {
+            if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(this, R.string.noupload_adf_file, Toast.LENGTH_LONG).show();
+                bindTangoService(null);
+            } else {
+                String adfUuid = data.getExtras().getString("DESTINATION_UUID");
+                createdAdfFileUuid.add(adfUuid);
+                Toast.makeText(this, String.format(getResources().getString(R.string.upload_adf_file), adfUuid), Toast.LENGTH_LONG).show();
+                bindTangoService(adfUuid);
+            }
+        } else if (requestCode == ImportExportADFHelper.ADF_EXPORT_PERMISSION_CODE) {
+            finish();
         }
     }
 
