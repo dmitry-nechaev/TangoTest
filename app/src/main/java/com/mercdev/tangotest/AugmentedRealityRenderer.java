@@ -173,6 +173,10 @@ public class AugmentedRealityRenderer extends Renderer {
         return getCurrentCamera().getPosition();
     }
 
+    public double getCameraAngle() {
+        return getCurrentCamera().getRotY();
+    }
+
     /**
      * It returns the ID currently assigned to the texture where the Tango color camera contents
      * should be rendered.

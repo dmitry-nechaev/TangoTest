@@ -89,7 +89,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
     private int displayRotation;
 
-    private double startModificationCameraX, startModificationCameraZ, startModificationFixtureX, startModificationFixtureZ, startModificationRotationAngle;
+    private double startModificationCameraX, startModificationCameraZ, startModificationFixtureX, startModificationFixtureZ, startModificationRotationAngle, startModificationCameraAngle;
     private Fixture startModificationFixture;
 
     /**
@@ -566,10 +566,10 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
                                     float[] rotation = lastFramePose.getRotationAsFloats();
                                     Quaternion q = new Quaternion(rotation[3], rotation[0], rotation[1], rotation[2]);
-                                    double rotationAngle = Math.toDegrees(-q.getRotationY());
-                                    previousObject.setRotY(/*startModificationRotationAngle + */rotationAngle);
+                                    double rotationAngle = Math.toDegrees(-q.getRotationY()) - startModificationCameraAngle;
+                                    previousObject.setRotY(startModificationRotationAngle + rotationAngle);
                                     FixturesRepository.getInstance().getFixture(startModificationFixture.getName())
-                                            .setRotationAngle(/*startModificationFixture.getRotationAngle() + */rotationAngle);
+                                            .setRotationAngle(startModificationFixture.getRotationAngle() + rotationAngle);
 
                                     minimap.processFixtures();
                                 }
@@ -842,6 +842,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             startModificationCameraZ = renderer.getCameraPosition().z;
             startModificationFixtureX = previousObject.getX();
             startModificationFixtureZ = previousObject.getZ();
+            startModificationRotationAngle = Math.toDegrees(previousObject.getRotY());
+            startModificationCameraAngle = Math.toDegrees(renderer.getCameraAngle());
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
