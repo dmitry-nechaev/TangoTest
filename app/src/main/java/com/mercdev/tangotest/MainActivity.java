@@ -203,11 +203,6 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 v.setAlpha(!isMapVisible ? 1f : .4f);
             }
         });
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
 
         if (ContextCompat.checkSelfPermission(this, Tango.PERMISSIONTYPE_ADF_LOAD_SAVE) == PackageManager.PERMISSION_GRANTED) {
             checkPermissionsAndBindTango();
@@ -219,7 +214,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     }
 
     @Override
-    public void onStop() {
+    public void onDestroy() {
         super.onStop();
         if (mSurfaceView != null) {
             mSurfaceView.onPause();
