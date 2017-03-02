@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.atap.tangoservice.Tango;
+import com.google.atap.tangoservice.TangoAreaDescriptionMetaData;
 import com.google.atap.tangoservice.TangoCameraIntrinsics;
 import com.google.atap.tangoservice.TangoConfig;
 import com.google.atap.tangoservice.TangoCoordinateFramePair;
@@ -239,11 +240,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 }
             }
         });
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
         if (ContextCompat.checkSelfPermission(this, ADF_LOAD_SAVE_PERMISSION) == PackageManager.PERMISSION_GRANTED) {
             checkPermissionsAndBindTango();
         } else {
@@ -254,7 +251,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     }
 
     @Override
-    public void onStop() {
+    public void onDestroy() {
         super.onStop();
         if (mSurfaceView != null) {
             mSurfaceView.onPause();
