@@ -49,6 +49,21 @@ public class FixturesRepository {
         return result;
     }
 
+
+    public void updateFixture(Fixture newFixture) {
+        if (newFixture != null) {
+            for (Fixture fixture : fixtures) {
+                if (newFixture.getName().equals(fixture.getName())){
+                    fixture.setPosition(newFixture.getPosition());
+                    fixture.setHeight(newFixture.getHeight());
+                    fixture.setWidth(newFixture.getWidth());
+                    fixture.setDepth(newFixture.getDepth());
+                    fixture.setRotationAngle(newFixture.getRotationAngle());
+                    break;
+                }
+            }
+        }
+    }
     public boolean removeFixture(int index) {
         Fixture removedFixture = (index > -1 && index < fixtures.size()) ? fixtures.remove(index) : null;
         return removedFixture != null;
