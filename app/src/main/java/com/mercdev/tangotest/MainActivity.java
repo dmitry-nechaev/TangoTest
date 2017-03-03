@@ -972,6 +972,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 FixturesRepository.getInstance().updateFixture(startModificationFixture);
                 previousObject.setPosition(startModificationFixtureX, previousObject.getY(), startModificationFixtureZ);
                 previousObject.setRotY(startModificationRotationAngle);
+                ((FixtureRectangularPrism) previousObject).changeSize(startModificationFixture.getHeight() / 100f, startModificationFixture.getWidth() / 100f, startModificationFixture.getDepth() / 100f);
                 minimap.processFixtures();
                 minimap.postInvalidate();
             }

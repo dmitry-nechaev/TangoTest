@@ -184,4 +184,13 @@ public class FixtureRectangularPrism extends Object3D {
         this.mDepth = depth;
         init(true);
     }
+
+    public void changeSize(float height, float width, float depth) {
+        float deltaHeight = (height - mHeight) * 0.5f;
+        this.mHeight = height;
+        this.mWidth = width;
+        this.mDepth = depth;
+        init(true);
+        moveUp(deltaHeight);
+    }
 }
