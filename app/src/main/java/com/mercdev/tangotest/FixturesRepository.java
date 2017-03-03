@@ -40,7 +40,7 @@ public class FixturesRepository {
         Fixture result = null;
         if (!TextUtils.isEmpty(name)) {
             for (Fixture fixture : fixtures) {
-                if (name.equals(fixture.getName())){
+                if (name.equals(fixture.getName())) {
                     result = fixture;
                     break;
                 }
@@ -53,7 +53,7 @@ public class FixturesRepository {
     public void updateFixture(Fixture newFixture) {
         if (newFixture != null) {
             for (Fixture fixture : fixtures) {
-                if (newFixture.getName().equals(fixture.getName())){
+                if (newFixture.getName().equals(fixture.getName())) {
                     fixture.setPosition(newFixture.getPosition());
                     fixture.setHeight(newFixture.getHeight());
                     fixture.setWidth(newFixture.getWidth());
@@ -64,6 +64,7 @@ public class FixturesRepository {
             }
         }
     }
+
     public boolean removeFixture(int index) {
         Fixture removedFixture = (index > -1 && index < fixtures.size()) ? fixtures.remove(index) : null;
         return removedFixture != null;
@@ -74,7 +75,7 @@ public class FixturesRepository {
         if (!TextUtils.isEmpty(name)) {
             int index = 0;
             for (Fixture fixture : fixtures) {
-                if (name.equals(fixture.getName())){
+                if (name.equals(fixture.getName())) {
                     resultIndex = index;
                     break;
                 }
