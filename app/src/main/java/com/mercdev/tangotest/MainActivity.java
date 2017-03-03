@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -73,6 +74,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private Minimap minimap;
     private View nothingTargeted, targetedFixture, deleteFixture, modifyFixture;
     private View marker;
+    private CheckBox holdCheckbox;
 
     private AugmentedRealityRenderer renderer;
     private Tango tango;
@@ -192,6 +194,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         targetedFixture = findViewById(R.id.targeted_fixture_container);
         deleteFixture = findViewById(R.id.delete_fixture_container);
         modifyFixture = findViewById(R.id.modify_fixture_container);
+        holdCheckbox = (CheckBox) findViewById(R.id.modify_fixture_hold);
         marker = findViewById(R.id.marker);
 
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
@@ -553,7 +556,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 // Update the camera pose from the renderer
                                 renderer.updateRenderCameraPose(lastFramePose);
                                 cameraPoseTimestamp = lastFramePose.timestamp;
-                                if (modifyFixture.getVisibility() == View.VISIBLE && previousObject != null) {
+                                if (modifyFixture.getVisibility() == View.VISIBLE && previousObject != null && holdCheckbox.isChecked()) {
                                     double dx = renderer.getCameraPosition().x - startModificationCameraX;
                                     double dz = renderer.getCameraPosition().z - startModificationCameraZ;
                                     double x = startModificationFixtureX + dx;
@@ -849,8 +852,18 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     ((TextView) modifyFixture.findViewById(R.id.modify_fixture_name))
                             .setText(String.format(getResources().getString(R.string.fixture_dialog_modify_fixture), fixture.getName()));
 
-                    EditText fixtureHeight = (EditText) modifyFixture.findViewById(R.id.modify_fixture_height);
+                    holdCheckbox.setChecked(false);
+
+                    final EditText fixtureHeight = (EditText) modifyFixture.findViewById(R.id.modify_fixture_height);
                     fixtureHeight.setText(String.valueOf(fixture.getHeight() / 100f));
+                    fixtureHeight.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                        @Override
+                        public void onFocusChange(View v, boolean hasFocus) {
+                            if (hasFocus) {
+                                holdCheckbox.setChecked(false);
+                            }
+                        }
+                    });
                     fixtureHeight.addTextChangedListener(new TextWatcher() {
                         @Override
                         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -864,9 +877,6 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 double newHeight = Double.valueOf(s.toString()).doubleValue();
                                 ((FixtureRectangularPrism) previousObject).changeHeight((float) newHeight);
                                 fixture.setHeight((int) (newHeight * 100f));
-
-                                minimap.processFixtures();
-                                minimap.postInvalidate();
                             }
                         }
 
@@ -876,8 +886,16 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         }
                     });
 
-                    EditText fixtureWidth = (EditText) modifyFixture.findViewById(R.id.modify_fixture_width);
+                    final EditText fixtureWidth = (EditText) modifyFixture.findViewById(R.id.modify_fixture_width);
                     fixtureWidth.setText(String.valueOf(fixture.getWidth() / 100f));
+                    fixtureWidth.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                        @Override
+                        public void onFocusChange(View v, boolean hasFocus) {
+                            if (hasFocus) {
+                                holdCheckbox.setChecked(false);
+                            }
+                        }
+                    });
                     fixtureWidth.addTextChangedListener(new TextWatcher() {
                         @Override
                         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -903,8 +921,16 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         }
                     });
 
-                    EditText fixtureDepth = (EditText) modifyFixture.findViewById(R.id.modify_fixture_depth);
+                    final EditText fixtureDepth = (EditText) modifyFixture.findViewById(R.id.modify_fixture_depth);
                     fixtureDepth.setText(String.valueOf(fixture.getDepth() / 100f));
+                    fixtureDepth.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                        @Override
+                        public void onFocusChange(View v, boolean hasFocus) {
+                            if (hasFocus) {
+                                holdCheckbox.setChecked(false);
+                            }
+                        }
+                    });
                     fixtureDepth.addTextChangedListener(new TextWatcher() {
                         @Override
                         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -917,7 +943,10 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
                                 double newDepth = Double.valueOf(s.toString()).doubleValue();
                                 ((FixtureRectangularPrism) previousObject).changeDepth((float) newDepth);
-                                fixture.setHeight((int) (newDepth * 100f));
+                                fixture.setDepth((int) (newDepth * 100f));
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
                             }
                         }
 
@@ -974,7 +1003,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 previousObject.setRotY(startModificationRotationAngle);
                 ((FixtureRectangularPrism) previousObject).changeSize(startModificationFixture.getHeight() / 100f, startModificationFixture.getWidth() / 100f, startModificationFixture.getDepth() / 100f);
                 minimap.processFixtures();
-                minimap.postInvalidate();
+                //minimap.postInvalidate();
             }
         });
     }

@@ -25,6 +25,7 @@
     <string name="fixture_dialog_delete_fixture_text">Are you sure you want to delete this fixture?</string>
 
     <string name="fixture_dialog_modify_fixture" formatted="false">Modify %s</string>
+    <string name="fixture_dialog_hold">Hold</string>
 
 
 </resources>
