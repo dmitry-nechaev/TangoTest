@@ -33,7 +33,6 @@ import org.rajawali3d.materials.textures.StreamingTexture;
 import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
-import org.rajawali3d.primitives.RectangularPrism;
 import org.rajawali3d.renderer.Renderer;
 import org.rajawali3d.util.ObjectColorPicker;
 import org.rajawali3d.util.OnObjectPickedListener;
@@ -118,7 +117,7 @@ public class AugmentedRealityRenderer extends Renderer {
                 float width = (float) fixture.getWidth() / 100f;
                 float height = (float) fixture.getHeight() / 100f;
                 float depth = (float) fixture.getDepth() / 100f;
-                RectangularPrism rect = new RectangularPrism(width, height, depth);
+                FixtureRectangularPrism rect = new FixtureRectangularPrism(width, height, depth);
                 rect.setPosition((double) fixture.getPosition().x / 100f + width * 0.5f, height * 0.5f + cameraHeight, (double) fixture.getPosition().y / 100f + depth * 0.5f);
                 rect.setMaterial(material);
                 rect.setColor(fixture.getColor());

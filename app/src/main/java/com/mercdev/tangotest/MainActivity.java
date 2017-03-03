@@ -16,10 +16,14 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -849,6 +853,84 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 public void run() {
                     ((TextView) modifyFixture.findViewById(R.id.modify_fixture_name))
                             .setText(String.format(getResources().getString(R.string.fixture_dialog_modify_fixture), fixture.getName()));
+
+                    EditText fixtureHeight = (EditText) modifyFixture.findViewById(R.id.modify_fixture_height);
+                    fixtureHeight.setText(String.valueOf(fixture.getHeight() / 100f));
+                    fixtureHeight.addTextChangedListener(new TextWatcher() {
+                        @Override
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                        }
+
+                        @Override
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            if (!TextUtils.isEmpty(s)) {
+                                Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
+                                double newHeight = Double.valueOf(s.toString()).doubleValue();
+                                ((FixtureRectangularPrism) previousObject).changeHeight((float) newHeight);
+                                fixture.setHeight((int) (newHeight * 100f));
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+
+                        @Override
+                        public void afterTextChanged(Editable s) {
+
+                        }
+                    });
+
+                    EditText fixtureWidth = (EditText) modifyFixture.findViewById(R.id.modify_fixture_width);
+                    fixtureWidth.setText(String.valueOf(fixture.getWidth() / 100f));
+                    fixtureWidth.addTextChangedListener(new TextWatcher() {
+                        @Override
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                        }
+
+                        @Override
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            if (!TextUtils.isEmpty(s)) {
+                                Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
+                                double newWidth = Double.valueOf(s.toString()).doubleValue();
+                                ((FixtureRectangularPrism) previousObject).changeWidth((float) newWidth);
+                                fixture.setWidth((int) (newWidth * 100f));
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+
+                        @Override
+                        public void afterTextChanged(Editable s) {
+
+                        }
+                    });
+
+                    EditText fixtureDepth = (EditText) modifyFixture.findViewById(R.id.modify_fixture_depth);
+                    fixtureDepth.setText(String.valueOf(fixture.getDepth() / 100f));
+                    fixtureDepth.addTextChangedListener(new TextWatcher() {
+                        @Override
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                        }
+
+                        @Override
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            if (!TextUtils.isEmpty(s)) {
+                                Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
+                                double newDepth = Double.valueOf(s.toString()).doubleValue();
+                                ((FixtureRectangularPrism) previousObject).changeDepth((float) newDepth);
+                                fixture.setHeight((int) (newDepth * 100f));
+                            }
+                        }
+
+                        @Override
+                        public void afterTextChanged(Editable s) {
+
+                        }
+                    });
 
                     modifyFixture.findViewById(R.id.modify_fixture_cancel).setOnClickListener(new View.OnClickListener() {
                         @Override
