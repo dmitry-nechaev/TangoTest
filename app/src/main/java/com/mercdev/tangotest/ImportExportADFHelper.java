@@ -46,7 +46,7 @@ public class ImportExportADFHelper {
         File lastAdfFile = null;
         if (adfDir.listFiles() != null) {
             for (File adfFile : adfDir.listFiles()) {
-                if (lastAdfFile == null || lastAdfFile.lastModified() < adfFile.lastModified()) {
+                if (!adfFile.isDirectory() && (lastAdfFile == null || lastAdfFile.lastModified() < adfFile.lastModified())) {
                     lastAdfFile = adfFile;
                 }
             }
