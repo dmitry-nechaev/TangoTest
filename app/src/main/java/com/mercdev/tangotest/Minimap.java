@@ -23,7 +23,7 @@ public class Minimap extends View {
     private final int LAYOUT_PADDING = 16;
     private Paint paint;
     private int minX, minY, maxX, maxY;
-    private float delta;
+    private float delta = 0.5f;
     private int cameraX, cameraY;
     private double cameraRotation;
     private double cameraYaw, cameraPitch, cameraRoll;
@@ -42,6 +42,8 @@ public class Minimap extends View {
     public void onDraw(Canvas canvas) {
         float cx = (-minX + cameraX) * delta;
         float cy = (-minY + cameraY) * delta;
+        canvas.translate(getWidth() * 0.5f - cx, getHeight() * 0.5f - cy);
+
         float radius = 30 * delta;
         paint.setColor(Color.BLUE);
         paint.setAlpha(128);
@@ -51,9 +53,13 @@ public class Minimap extends View {
                 cy - radiusMultiplier * radius,
                 cx + radiusMultiplier * radius,
                 cy + radiusMultiplier * radius,
-                -90 - sweepAngle * 0.5f - (float) Math.toDegrees(cameraRotation), sweepAngle, true, paint);
+                -90 - sweepAngle * 0.5f - (float) Math.toDegrees(0), sweepAngle, true, paint);
         paint.setAlpha(255);
         canvas.drawCircle(cx, cy, radius, paint);
+
+        canvas.rotate((float) Math.toDegrees(cameraRotation),
+                (-minX + cameraX) * delta,
+                (-minY + cameraY) * delta);
 
         ArrayList<Fixture> fixtures = FixturesRepository.getInstance().getFixtures();
         for (Fixture fixture : fixtures) {
@@ -97,10 +103,6 @@ public class Minimap extends View {
         maxX += LAYOUT_PADDING;
         minY -= LAYOUT_PADDING;
         maxY += LAYOUT_PADDING;
-
-        float deltaX = Math.abs((float) getResources().getDimensionPixelSize(R.dimen.minimap_width) / (maxX - minX));
-        float deltaY = Math.abs((float) getResources().getDimensionPixelSize(R.dimen.minimap_height) / (maxY - minY));
-        delta = Math.min(deltaX, deltaY);
     }
 
     public void setCameraPosition(TangoPoseData cameraPose) {
@@ -120,6 +122,12 @@ public class Minimap extends View {
         paint.setStyle(Paint.Style.FILL);
         setWillNotDraw(false);
         processFixtures();
+    }
+
+    private void calculateDelta() {
+        float deltaX = Math.abs((float) getResources().getDimensionPixelSize(R.dimen.minimap_width) / (maxX - minX));
+        float deltaY = Math.abs((float) getResources().getDimensionPixelSize(R.dimen.minimap_height) / (maxY - minY));
+        delta = Math.min(deltaX, deltaY);
     }
 
 }
