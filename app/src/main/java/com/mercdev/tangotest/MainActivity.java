@@ -947,7 +947,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 float value = fixture.getDepth() * 0.01f;
                                 value += 0.01f;
                                 if (value > 0f) {
-                                    fixtureHeight.setText(String.valueOf(value));
+                                    fixtureDepth.setText(String.valueOf(value));
                                     previousObject.setScaleZ(value / ((FixtureRectangularPrism) previousObject).getDepth());
                                     fixture.setDepth((int) (value * 100f));
 
