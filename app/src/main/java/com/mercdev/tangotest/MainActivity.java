@@ -16,15 +16,11 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.text.Editable;
-import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -95,7 +91,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
     private int displayRotation;
 
-    private double startModificationCameraX, startModificationCameraZ, startModificationFixtureX, startModificationFixtureZ, startModificationRotationAngle, startModificationCameraAngle;
+    private double startModificationCameraX, startModificationCameraZ, startModificationFixtureX, startModificationFixtureZ,
+            startModificationRotationAngle, startModificationCameraAngle,
+            startModificationFixtureScaleX, startModificationFixtureScaleY, startModificationFixtureScaleZ;
     private Fixture startModificationFixture;
 
     /**
@@ -846,6 +844,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             startModificationFixtureZ = previousObject.getZ();
             startModificationRotationAngle = Math.toDegrees(previousObject.getRotY());
             startModificationCameraAngle = Math.toDegrees(renderer.getCameraAngle());
+            startModificationFixtureScaleX = previousObject.getScaleX();
+            startModificationFixtureScaleY = previousObject.getScaleY();
+            startModificationFixtureScaleZ = previousObject.getScaleZ();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -854,105 +855,106 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
                     holdCheckbox.setChecked(false);
 
-                    final EditText fixtureHeight = (EditText) modifyFixture.findViewById(R.id.modify_fixture_height);
+                    final TextView fixtureHeight = (TextView) modifyFixture.findViewById(R.id.modify_fixture_height);
                     fixtureHeight.setText(String.valueOf(fixture.getHeight() / 100f));
-                    fixtureHeight.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_height_minus).setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onFocusChange(View v, boolean hasFocus) {
-                            if (hasFocus) {
-                                holdCheckbox.setChecked(false);
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                float value = fixture.getHeight() * 0.01f;
+                                value -= 0.01f;
+                                if (value > 0f) {
+                                    fixtureHeight.setText(String.valueOf(value));
+                                    previousObject.setScaleY(value / ((FixtureRectangularPrism) previousObject).getHeight());
+                                    previousObject.moveUp(-0.005);
+                                    fixture.setHeight((int) (value * 100f));
+                                }
                             }
                         }
                     });
-                    fixtureHeight.addTextChangedListener(new TextWatcher() {
+                    modifyFixture.findViewById(R.id.modify_fixture_height_plus).setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                        }
-
-                        @Override
-                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                            if (!TextUtils.isEmpty(s)) {
-                                Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
-                                double newHeight = Double.valueOf(s.toString()).doubleValue();
-                                ((FixtureRectangularPrism) previousObject).changeHeight((float) newHeight);
-                                fixture.setHeight((int) (newHeight * 100f));
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                float value = fixture.getHeight() * 0.01f;
+                                value += 0.01f;
+                                fixtureHeight.setText(String.valueOf(value));
+                                previousObject.setScaleY(value / ((FixtureRectangularPrism) previousObject).getHeight());
+                                previousObject.moveUp(0.005);
+                                fixture.setHeight((int) (value * 100f));
                             }
-                        }
-
-                        @Override
-                        public void afterTextChanged(Editable s) {
-
                         }
                     });
 
-                    final EditText fixtureWidth = (EditText) modifyFixture.findViewById(R.id.modify_fixture_width);
+                    final TextView fixtureWidth = (TextView) modifyFixture.findViewById(R.id.modify_fixture_width);
                     fixtureWidth.setText(String.valueOf(fixture.getWidth() / 100f));
-                    fixtureWidth.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_width_minus).setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onFocusChange(View v, boolean hasFocus) {
-                            if (hasFocus) {
-                                holdCheckbox.setChecked(false);
-                            }
-                        }
-                    });
-                    fixtureWidth.addTextChangedListener(new TextWatcher() {
-                        @Override
-                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                        }
-
-                        @Override
-                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                            if (!TextUtils.isEmpty(s)) {
-                                Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
-                                double newWidth = Double.valueOf(s.toString()).doubleValue();
-                                ((FixtureRectangularPrism) previousObject).changeWidth((float) newWidth);
-                                fixture.setWidth((int) (newWidth * 100f));
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                float value = fixture.getWidth() * 0.01f;
+                                value -= 0.01f;
+                                if (value > 0f) {
+                                    fixtureWidth.setText(String.valueOf(value));
+                                    previousObject.setScaleX(value / ((FixtureRectangularPrism) previousObject).getWidth());
+                                    fixture.setWidth((int) (value * 100f));
+                                }
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
                             }
                         }
-
+                    });
+                    modifyFixture.findViewById(R.id.modify_fixture_width_plus).setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void afterTextChanged(Editable s) {
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                float value = fixture.getWidth() * 0.01f;
+                                value += 0.01f;
+                                fixtureWidth.setText(String.valueOf(value));
+                                previousObject.setScaleX(value / ((FixtureRectangularPrism) previousObject).getWidth());
+                                fixture.setWidth((int) (value * 100f));
 
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
                         }
                     });
 
-                    final EditText fixtureDepth = (EditText) modifyFixture.findViewById(R.id.modify_fixture_depth);
+                    final TextView fixtureDepth = (TextView) modifyFixture.findViewById(R.id.modify_fixture_depth);
                     fixtureDepth.setText(String.valueOf(fixture.getDepth() / 100f));
-                    fixtureDepth.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_depth_minus).setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onFocusChange(View v, boolean hasFocus) {
-                            if (hasFocus) {
-                                holdCheckbox.setChecked(false);
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                float value = fixture.getDepth() * 0.01f;
+                                value -= 0.01f;
+                                if (value > 0f) {
+                                    fixtureDepth.setText(String.valueOf(value));
+                                    previousObject.setScaleZ(value / ((FixtureRectangularPrism) previousObject).getDepth());
+                                    fixture.setDepth((int) (value * 100f));
+
+                                    minimap.processFixtures();
+                                    minimap.postInvalidate();
+                                }
                             }
                         }
                     });
-                    fixtureDepth.addTextChangedListener(new TextWatcher() {
+                    modifyFixture.findViewById(R.id.modify_fixture_depth_plus).setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                float value = fixture.getDepth() * 0.01f;
+                                value += 0.01f;
+                                if (value > 0f) {
+                                    fixtureHeight.setText(String.valueOf(value));
+                                    previousObject.setScaleZ(value / ((FixtureRectangularPrism) previousObject).getDepth());
+                                    fixture.setDepth((int) (value * 100f));
 
-                        }
-
-                        @Override
-                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                            if (!TextUtils.isEmpty(s)) {
-                                Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
-                                double newDepth = Double.valueOf(s.toString()).doubleValue();
-                                ((FixtureRectangularPrism) previousObject).changeDepth((float) newDepth);
-                                fixture.setDepth((int) (newDepth * 100f));
-
-                                minimap.processFixtures();
-                                minimap.postInvalidate();
+                                    minimap.processFixtures();
+                                    minimap.postInvalidate();
+                                }
                             }
-                        }
-
-                        @Override
-                        public void afterTextChanged(Editable s) {
-
                         }
                     });
 
@@ -1001,9 +1003,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 FixturesRepository.getInstance().updateFixture(startModificationFixture);
                 previousObject.setPosition(startModificationFixtureX, previousObject.getY(), startModificationFixtureZ);
                 previousObject.setRotY(startModificationRotationAngle);
-                ((FixtureRectangularPrism) previousObject).changeSize(startModificationFixture.getHeight() / 100f, startModificationFixture.getWidth() / 100f, startModificationFixture.getDepth() / 100f);
+                previousObject.setScale(startModificationFixtureScaleX, startModificationFixtureScaleY, startModificationFixtureScaleZ);
                 minimap.processFixtures();
-                //minimap.postInvalidate();
             }
         });
     }

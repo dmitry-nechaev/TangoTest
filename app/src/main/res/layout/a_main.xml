@@ -201,13 +201,27 @@
                         android:text="H"
                         android:textColor="@android:color/black" />
 
-                    <EditText
+                    <Button
+                        android:id="@+id/modify_fixture_height_minus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="-"
+                        android:textColor="@android:color/black" />
+
+                    <TextView
                         android:id="@+id/modify_fixture_height"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:digits="0123456789."
-                        android:inputType="numberDecimal" />
+                        android:layout_weight="0.6"
+                        android:gravity="center"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/modify_fixture_height_plus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="+"
+                        android:textColor="@android:color/black" />
 
                 </LinearLayout>
 
@@ -225,13 +239,27 @@
                         android:text="W"
                         android:textColor="@android:color/black" />
 
-                    <EditText
+                    <Button
+                        android:id="@+id/modify_fixture_width_minus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="-"
+                        android:textColor="@android:color/black" />
+
+                    <TextView
                         android:id="@+id/modify_fixture_width"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:digits="0123456789."
-                        android:inputType="numberDecimal" />
+                        android:layout_weight="0.6"
+                        android:gravity="center"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/modify_fixture_width_plus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="+"
+                        android:textColor="@android:color/black" />
 
                 </LinearLayout>
 
@@ -249,13 +277,27 @@
                         android:text="D"
                         android:textColor="@android:color/black" />
 
-                    <EditText
+                    <Button
+                        android:id="@+id/modify_fixture_depth_minus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="-"
+                        android:textColor="@android:color/black" />
+
+                    <TextView
                         android:id="@+id/modify_fixture_depth"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.8"
-                        android:digits="0123456789."
-                        android:inputType="numberDecimal" />
+                        android:layout_weight="0.6"
+                        android:gravity="center"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/modify_fixture_depth_plus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="+"
+                        android:textColor="@android:color/black" />
 
                 </LinearLayout>
 
@@ -264,9 +306,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
+                    android:checked="false"
                     android:text="@string/fixture_dialog_hold"
-                    android:textColor="@android:color/black"
-                    android:checked="false"/>
+                    android:textColor="@android:color/black" />
 
                 <Button
                     android:id="@+id/modify_fixture_save"
