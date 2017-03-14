@@ -975,6 +975,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         public void onClick(View v) {
                             //TODO apply modifications
                             showFixtureInformation(fixture);
+
+                            previousObject.setColor(fixture.getColor());
                         }
                     });
 
@@ -984,6 +986,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     modifyFixture.setVisibility(View.VISIBLE);
                 }
             });
+
+            previousObject.setColor(getResources().getColor(R.color.object_selected));
         }
     }
 
@@ -1010,6 +1014,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 previousObject.setRotY(startModificationRotationAngle);
                 previousObject.setScale(startModificationFixtureScaleX, startModificationFixtureScaleY, startModificationFixtureScaleZ);
                 minimap.processFixtures();
+                previousObject.setColor(startModificationFixture.getColor());
             }
         });
     }
