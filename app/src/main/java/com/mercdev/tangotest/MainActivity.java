@@ -555,21 +555,26 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 renderer.updateRenderCameraPose(lastFramePose);
                                 cameraPoseTimestamp = lastFramePose.timestamp;
                                 if (modifyFixture.getVisibility() == View.VISIBLE && previousObject != null && holdCheckbox.isChecked()) {
-                                    double dx = renderer.getCameraPosition().x - startModificationCameraX;
-                                    double dz = renderer.getCameraPosition().z - startModificationCameraZ;
-                                    double x = startModificationFixtureX + dx;
-                                    double z = startModificationFixtureZ + dz;
-                                    previousObject.setPosition(x, previousObject.getY(), z);
-                                    FixturesRepository.getInstance().getFixture(startModificationFixture.getName())
-                                            .setPosition(new Point((int) (startModificationFixture.getPosition().x + dx * 100f),
-                                                    (int) (startModificationFixture.getPosition().y + dz * 100f)));
-
                                     float[] rotation = lastFramePose.getRotationAsFloats();
                                     Quaternion q = new Quaternion(rotation[3], rotation[0], rotation[1], rotation[2]);
                                     double rotationAngle = Math.toDegrees(-q.getRotationY()) - startModificationCameraAngle;
                                     previousObject.setRotY(startModificationRotationAngle + rotationAngle);
                                     FixturesRepository.getInstance().getFixture(startModificationFixture.getName())
                                             .setRotationAngle(startModificationFixture.getRotationAngle() + rotationAngle);
+
+                                    double angle = Math.toRadians(rotationAngle);
+
+                                    double x1 = startModificationFixtureX - startModificationCameraX;
+                                    double z1 = startModificationFixtureZ - startModificationCameraZ;
+
+                                    double x2 = x1 * Math.cos(angle) - z1 * Math.sin(angle) + renderer.getCameraPosition().x;
+                                    double z2 = x1 * Math.sin(angle) + z1 * Math.cos(angle) + renderer.getCameraPosition().z;
+
+                                    previousObject.setPosition(x2, previousObject.getY(), z2);
+
+                                    Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
+                                    fixture.setPosition(new Point((int) (x2 * 100f - fixture.getWidth() * 0.5f),
+                                            (int) (z2 * 100f - fixture.getDepth() * 0.5f)));
 
                                     minimap.processFixtures();
                                 }
