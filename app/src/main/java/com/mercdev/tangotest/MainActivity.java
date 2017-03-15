@@ -61,7 +61,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
     private static final String CAMERA_PERMISSION = Manifest.permission.CAMERA;
     private static final int CAMERA_PERMISSION_CODE = 0;
-    private static final PointF FLOOR_DEFINITION_POINT = new PointF(0.5f, 0.75f);
+    private static final PointF FLOOR_DEFINITION_POINT = new PointF(0.5f, 0.5f);
 
     private SurfaceView mSurfaceView;
     private FrameLayout mapContainer;
@@ -391,8 +391,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     while (true) {
                                         TangoPointCloudData cloudData = tangoPointCloudManager.getLatestPointCloud();
                                         if (cloudDataTimestamp < cloudData.timestamp) {
-                                            final Matrix4 transformFloorMatrix4 = FloorPlaneDefinitionHelper.getTransformFloorMatrix4(FLOOR_DEFINITION_POINT.x, FLOOR_DEFINITION_POINT.y, cloudData,
-                                                    rgbTimestampGlThread, displayRotation);
+                                            final Matrix4 transformFloorMatrix4 = FloorPlaneDefinitionHelper.getTransformFloorMatrix4(FLOOR_DEFINITION_POINT.x, FLOOR_DEFINITION_POINT.y,
+                                                                                                                                      cloudData, rgbTimestampGlThread);
 
                                             // TODO need add check defined plane is floor
                                             if (transformFloorMatrix4 != null) {
