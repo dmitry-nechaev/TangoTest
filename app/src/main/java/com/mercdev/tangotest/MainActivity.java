@@ -688,6 +688,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         fixtures.add(new Fixture("Fixture2", new Point(-860, -620), 280, 25, 685, 0f, fixtureColor));
         fixtures.add(new Fixture("Fixture3", new Point(-835, 40), 280, 1180, 25, 0f, fixtureColor));
         fixtures.add(new Fixture("Fixture4", new Point(-835, -620), 280, 1180, 25, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture5", new Point(-257, -290), 100, 100, 100, 0f, fixtureColor));
 
         FixturesRepository.getInstance().setFixtures(fixtures);
     }
@@ -994,7 +995,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private void setFixtureDistance() {
         if (previousObject != null) {
             Vector3 cameraPosition = renderer.getCameraPosition();
-            final double distance = Math.sqrt(Math.pow(previousObject.getX() - cameraPosition.x, 2) + Math.pow(previousObject.getY() - cameraPosition.y, 2));
+            final double distance = ((FixtureRectangularPrism) previousObject).getDistanceFromPoint(cameraPosition);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
