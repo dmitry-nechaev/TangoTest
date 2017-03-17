@@ -73,7 +73,7 @@
         android:layout_height="match_parent">
 
         <FrameLayout
-            android:layout_width="250dp"
+            android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:layout_gravity="left"
             android:layout_margin="16dp"
@@ -197,7 +197,8 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.2"
+                        android:layout_weight="0.1"
+                        android:gravity="center"
                         android:text="H"
                         android:textColor="@android:color/black" />
 
@@ -212,12 +213,34 @@
                         android:id="@+id/modify_fixture_height"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.6"
+                        android:layout_weight="0.2"
                         android:gravity="center"
                         android:textColor="@android:color/black" />
 
                     <Button
                         android:id="@+id/modify_fixture_height_plus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="+"
+                        android:textColor="@android:color/black" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.3"
+                        android:gravity="center"
+                        android:text="X"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/modify_fixture_x_minus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="-"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/modify_fixture_x_plus"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:text="+"
@@ -235,7 +258,8 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.2"
+                        android:layout_weight="0.1"
+                        android:gravity="center"
                         android:text="W"
                         android:textColor="@android:color/black" />
 
@@ -250,12 +274,34 @@
                         android:id="@+id/modify_fixture_width"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.6"
+                        android:layout_weight="0.2"
                         android:gravity="center"
                         android:textColor="@android:color/black" />
 
                     <Button
                         android:id="@+id/modify_fixture_width_plus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="+"
+                        android:textColor="@android:color/black" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.3"
+                        android:gravity="center"
+                        android:text="Y"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/modify_fixture_y_minus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="-"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/modify_fixture_y_plus"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:text="+"
@@ -273,7 +319,8 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.2"
+                        android:layout_weight="0.1"
+                        android:gravity="center"
                         android:text="D"
                         android:textColor="@android:color/black" />
 
@@ -288,12 +335,34 @@
                         android:id="@+id/modify_fixture_depth"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.6"
+                        android:layout_weight="0.2"
                         android:gravity="center"
                         android:textColor="@android:color/black" />
 
                     <Button
                         android:id="@+id/modify_fixture_depth_plus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="+"
+                        android:textColor="@android:color/black" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.3"
+                        android:gravity="center"
+                        android:text="@string/fixture_dialog_angle"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/modify_fixture_angle_minus"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:text="-"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/modify_fixture_angle_plus"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:text="+"

@@ -392,7 +392,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                         TangoPointCloudData cloudData = tangoPointCloudManager.getLatestPointCloud();
                                         if (cloudDataTimestamp < cloudData.timestamp) {
                                             final Matrix4 transformFloorMatrix4 = FloorPlaneDefinitionHelper.getTransformFloorMatrix4(FLOOR_DEFINITION_POINT.x, FLOOR_DEFINITION_POINT.y,
-                                                                                                                                      cloudData, rgbTimestampGlThread);
+                                                    cloudData, rgbTimestampGlThread);
 
                                             // TODO need add check defined plane is floor
                                             if (transformFloorMatrix4 != null) {
@@ -892,6 +892,32 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         }
                     });
 
+
+                    modifyFixture.findViewById(R.id.modify_fixture_x_minus).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                previousObject.setPosition(previousObject.getX() - 0.01f, previousObject.getY(), previousObject.getZ());
+                                fixture.setX(fixture.getPosition().x - 1);
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+                    });
+                    modifyFixture.findViewById(R.id.modify_fixture_x_plus).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                previousObject.setPosition(previousObject.getX() + 0.01f, previousObject.getY(), previousObject.getZ());
+                                fixture.setX(fixture.getPosition().x + 1);
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+                    });
+
                     final TextView fixtureWidth = (TextView) modifyFixture.findViewById(R.id.modify_fixture_width);
                     fixtureWidth.setText(String.valueOf(fixture.getWidth() / 100f));
                     modifyFixture.findViewById(R.id.modify_fixture_width_minus).setOnClickListener(new View.OnClickListener() {
@@ -920,6 +946,32 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 fixtureWidth.setText(String.valueOf(value));
                                 previousObject.setScaleX(value / ((FixtureRectangularPrism) previousObject).getWidth());
                                 fixture.setWidth((int) (value * 100f));
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+                    });
+
+
+                    modifyFixture.findViewById(R.id.modify_fixture_y_minus).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                previousObject.setPosition(previousObject.getX(), previousObject.getY(), previousObject.getZ() - 0.01f);
+                                fixture.setY(fixture.getPosition().y - 1);
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+                    });
+                    modifyFixture.findViewById(R.id.modify_fixture_y_plus).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                previousObject.setPosition(previousObject.getX(), previousObject.getY(), previousObject.getZ() + 0.01f);
+                                fixture.setY(fixture.getPosition().y + 1);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -964,6 +1016,42 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         }
                     });
 
+
+                    modifyFixture.findViewById(R.id.modify_fixture_angle_minus).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                double value = fixture.getRotationAngle();
+                                value -= 1;
+                                if (Double.compare(value, 0) < 0) {
+                                    value = 360 + value;
+                                }
+                                previousObject.setRotY(value);
+                                fixture.setRotationAngle(value);
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+                    });
+                    modifyFixture.findViewById(R.id.modify_fixture_angle_plus).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            synchronized (this) {
+                                double value = fixture.getRotationAngle();
+                                value += 1;
+                                if (Double.compare(value, 360) >= 0) {
+                                    value = value - 360;
+                                }
+                                previousObject.setRotY(value);
+                                fixture.setRotationAngle(value);
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+                    });
+
                     modifyFixture.findViewById(R.id.modify_fixture_cancel).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -974,9 +1062,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     modifyFixture.findViewById(R.id.modify_fixture_save).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            //TODO apply modifications
                             showFixtureInformation(fixture);
-
                             previousObject.setColor(fixture.getColor());
                         }
                     });
@@ -1014,8 +1100,10 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 previousObject.setPosition(startModificationFixtureX, previousObject.getY(), startModificationFixtureZ);
                 previousObject.setRotY(startModificationRotationAngle);
                 previousObject.setScale(startModificationFixtureScaleX, startModificationFixtureScaleY, startModificationFixtureScaleZ);
-                minimap.processFixtures();
                 previousObject.setColor(startModificationFixture.getColor());
+
+                minimap.processFixtures();
+                minimap.postInvalidate();
             }
         });
     }

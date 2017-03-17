@@ -16,7 +16,7 @@ public class Fixture implements Cloneable {
 
     public Fixture(String name, Point position, int height, int width, int depth, double rotateAngle, int color) {
         this.name = name;
-        this.position = position;
+        this.position = new Point(position.x, position.y);
         this.height = height;
         this.width = width;
         this.depth = depth;
@@ -26,6 +26,18 @@ public class Fixture implements Cloneable {
 
     public void setPosition(Point position) {
         this.position = position;
+    }
+
+    public void setX(int x) {
+        if (position != null) {
+            position.x = x;
+        }
+    }
+
+    public void setY(int y) {
+        if (position != null) {
+            position.y = y;
+        }
     }
 
     public void setWidth(int width) {
@@ -74,12 +86,7 @@ public class Fixture implements Cloneable {
 
     @Override
     public Object clone() {
-        Object result;
-        try {
-            result = super.clone();
-        } catch (CloneNotSupportedException e) {
-            result = new Fixture(name, position, height, width, depth, rotationAngle, color);
-        }
+        Object result = new Fixture(name, position, height, width, depth, rotationAngle, color);
         return result;
     }
 }
