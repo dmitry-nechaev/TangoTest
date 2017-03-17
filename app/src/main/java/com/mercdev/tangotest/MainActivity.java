@@ -828,6 +828,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 FixturesRepository.getInstance().removeFixture(previousObject.getName());
                                 renderer.removeObject(previousObject.getName());
                                 minimap.postInvalidate();
+                                showNothingTargeted();
                             }
                         }
                     });
