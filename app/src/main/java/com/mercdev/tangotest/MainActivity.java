@@ -863,9 +863,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
                     final TextView fixtureHeight = (TextView) modifyFixture.findViewById(R.id.modify_fixture_height);
                     fixtureHeight.setText(String.valueOf(fixture.getHeight() / 100f));
-                    modifyFixture.findViewById(R.id.modify_fixture_height_minus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_height_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 float value = fixture.getHeight() * 0.01f;
                                 value -= 0.01f;
@@ -878,9 +878,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                             }
                         }
                     });
-                    modifyFixture.findViewById(R.id.modify_fixture_height_plus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_height_plus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 float value = fixture.getHeight() * 0.01f;
                                 value += 0.01f;
@@ -893,9 +893,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     });
 
 
-                    modifyFixture.findViewById(R.id.modify_fixture_x_minus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_x_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 previousObject.setPosition(previousObject.getX() - 0.01f, previousObject.getY(), previousObject.getZ());
                                 fixture.setX(fixture.getPosition().x - 1);
@@ -905,9 +905,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                             }
                         }
                     });
-                    modifyFixture.findViewById(R.id.modify_fixture_x_plus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_x_plus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 previousObject.setPosition(previousObject.getX() + 0.01f, previousObject.getY(), previousObject.getZ());
                                 fixture.setX(fixture.getPosition().x + 1);
@@ -920,9 +920,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
                     final TextView fixtureWidth = (TextView) modifyFixture.findViewById(R.id.modify_fixture_width);
                     fixtureWidth.setText(String.valueOf(fixture.getWidth() / 100f));
-                    modifyFixture.findViewById(R.id.modify_fixture_width_minus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_width_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 float value = fixture.getWidth() * 0.01f;
                                 value -= 0.01f;
@@ -937,9 +937,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                             }
                         }
                     });
-                    modifyFixture.findViewById(R.id.modify_fixture_width_plus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_width_plus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 float value = fixture.getWidth() * 0.01f;
                                 value += 0.01f;
@@ -954,9 +954,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     });
 
 
-                    modifyFixture.findViewById(R.id.modify_fixture_y_minus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_y_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 previousObject.setPosition(previousObject.getX(), previousObject.getY(), previousObject.getZ() - 0.01f);
                                 fixture.setY(fixture.getPosition().y - 1);
@@ -966,9 +966,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                             }
                         }
                     });
-                    modifyFixture.findViewById(R.id.modify_fixture_y_plus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_y_plus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 previousObject.setPosition(previousObject.getX(), previousObject.getY(), previousObject.getZ() + 0.01f);
                                 fixture.setY(fixture.getPosition().y + 1);
@@ -981,9 +981,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
                     final TextView fixtureDepth = (TextView) modifyFixture.findViewById(R.id.modify_fixture_depth);
                     fixtureDepth.setText(String.valueOf(fixture.getDepth() / 100f));
-                    modifyFixture.findViewById(R.id.modify_fixture_depth_minus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_depth_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 float value = fixture.getDepth() * 0.01f;
                                 value -= 0.01f;
@@ -998,9 +998,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                             }
                         }
                     });
-                    modifyFixture.findViewById(R.id.modify_fixture_depth_plus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_depth_plus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 float value = fixture.getDepth() * 0.01f;
                                 value += 0.01f;
@@ -1017,9 +1017,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     });
 
 
-                    modifyFixture.findViewById(R.id.modify_fixture_angle_minus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_angle_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 double value = fixture.getRotationAngle();
                                 value -= 1;
@@ -1034,9 +1034,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                             }
                         }
                     });
-                    modifyFixture.findViewById(R.id.modify_fixture_angle_plus).setOnClickListener(new View.OnClickListener() {
+                    modifyFixture.findViewById(R.id.modify_fixture_angle_plus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onTouchRepeat(View view) {
                             synchronized (this) {
                                 double value = fixture.getRotationAngle();
                                 value += 1;
