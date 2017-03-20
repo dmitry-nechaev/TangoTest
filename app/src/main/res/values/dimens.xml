@@ -4,5 +4,4 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="minimap_width">300dp</dimen>
     <dimen name="minimap_height">225dp</dimen>
-    <dimen name="marker_size">50dp</dimen>
 </resources>

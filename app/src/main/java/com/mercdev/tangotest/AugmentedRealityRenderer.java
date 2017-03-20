@@ -65,6 +65,7 @@ public class AugmentedRealityRenderer extends Renderer {
     private boolean isFixturesVisible = true;
 
     private ObjectColorPicker picker;
+    private FloatObjectFinder objectFinder;
 
     public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener, Matrix4 transformFloorMatrix4) {
         super(context);
@@ -105,6 +106,10 @@ public class AugmentedRealityRenderer extends Renderer {
 
         Vector3 floorPlaneVector = transformFloorMatrix4.getTranslation();
         double cameraHeight = floorPlaneVector.y;
+
+        objectFinder = new FloatObjectFinder(0.4f, 0.4f);
+        objectFinder.setDepthPosition(4.0f);
+        getCurrentScene().addChild(objectFinder);
 
         Material material = new Material();
         material.enableLighting(true);
@@ -164,8 +169,12 @@ public class AugmentedRealityRenderer extends Renderer {
         Quaternion quaternion = new Quaternion(rotation[3], rotation[0], rotation[1], rotation[2]);
         // Conjugating the Quaternion is need because Rajawali uses left handed convention for
         // quaternions.
-        getCurrentCamera().setRotation(quaternion.conjugate());
-        getCurrentCamera().setPosition(translation[0], translation[1], translation[2]);
+        Quaternion conjugateQuaternion = quaternion.conjugate();
+        Vector3 translationVector = new Vector3(translation[0], translation[1], translation[2]);
+
+        objectFinder.setOrientation(translationVector, conjugateQuaternion);
+        getCurrentCamera().setRotation(conjugateQuaternion);
+        getCurrentCamera().setPosition(translationVector);
     }
 
     public Vector3 getCameraPosition() {
@@ -234,6 +243,10 @@ public class AugmentedRealityRenderer extends Renderer {
         for (Object3D object : objects) {
             object.setVisible(isFixturesVisible);
         }
+    }
+
+    public FloatObjectFinder getObjectFinder() {
+        return objectFinder;
     }
 
     public boolean isFixturesVisible() {

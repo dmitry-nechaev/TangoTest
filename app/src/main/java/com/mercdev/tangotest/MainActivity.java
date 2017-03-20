@@ -6,7 +6,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.hardware.display.DisplayManager;
@@ -69,7 +68,6 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private TextView coverFrameText;
     private Minimap minimap;
     private View nothingTargeted, targetedFixture, deleteFixture, modifyFixture;
-    private View marker;
     private CheckBox holdCheckbox;
 
     private AugmentedRealityRenderer renderer;
@@ -193,7 +191,6 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         deleteFixture = findViewById(R.id.delete_fixture_container);
         modifyFixture = findViewById(R.id.modify_fixture_container);
         holdCheckbox = (CheckBox) findViewById(R.id.modify_fixture_hold);
-        marker = findViewById(R.id.marker);
 
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
         minimap = (Minimap) findViewById(R.id.minimap);
@@ -713,7 +710,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 if (fixture != null && (previousObject == null || !previousObject.getName().equals(object.getName()))) {
                     previousObject = object;
                     showFixtureInformation(fixture);
-                    changeMarkerColor(Color.GREEN);
+                    renderer.getObjectFinder().onFind();
                 }
                 setFixtureDistance();
             } else {
@@ -732,7 +729,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             }
 
             showNothingTargeted();
-            changeMarkerColor(Color.RED);
+            renderer.getObjectFinder().onLose();
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -741,15 +738,6 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 }
             });
         }
-    }
-
-    private void changeMarkerColor(final int color) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                marker.setBackgroundColor(color);
-            }
-        });
     }
 
     private void showCoverFrame(int coverText) {
