@@ -920,7 +920,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     holdCheckbox.setChecked(false);
                                 }
                                 previousObject.setPosition(previousObject.getX() - 0.01f, previousObject.getY(), previousObject.getZ());
-                                fixture.setX(fixture.getPosition().x - 1);
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                storedFixture.setX(storedFixture.getPosition().x - 1);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -935,7 +936,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     holdCheckbox.setChecked(false);
                                 }
                                 previousObject.setPosition(previousObject.getX() + 0.01f, previousObject.getY(), previousObject.getZ());
-                                fixture.setX(fixture.getPosition().x + 1);
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                storedFixture.setX(storedFixture.getPosition().x + 1);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -993,7 +995,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     holdCheckbox.setChecked(false);
                                 }
                                 previousObject.setPosition(previousObject.getX(), previousObject.getY(), previousObject.getZ() - 0.01f);
-                                fixture.setY(fixture.getPosition().y - 1);
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                storedFixture.setY(storedFixture.getPosition().y - 1);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1008,7 +1011,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     holdCheckbox.setChecked(false);
                                 }
                                 previousObject.setPosition(previousObject.getX(), previousObject.getY(), previousObject.getZ() + 0.01f);
-                                fixture.setY(fixture.getPosition().y + 1);
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                storedFixture.setY(storedFixture.getPosition().y + 1);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1067,13 +1071,14 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                double value = fixture.getRotationAngle();
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                double value = storedFixture.getRotationAngle();
                                 value -= 1;
                                 if (Double.compare(value, 0) < 0) {
                                     value = 360 + value;
                                 }
                                 previousObject.setRotY(value);
-                                fixture.setRotationAngle(value);
+                                storedFixture.setRotationAngle(value);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1087,13 +1092,14 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                double value = fixture.getRotationAngle();
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                double value = storedFixture.getRotationAngle();
                                 value += 1;
                                 if (Double.compare(value, 360) >= 0) {
                                     value = value - 360;
                                 }
                                 previousObject.setRotY(value);
-                                fixture.setRotationAngle(value);
+                                storedFixture.setRotationAngle(value);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
