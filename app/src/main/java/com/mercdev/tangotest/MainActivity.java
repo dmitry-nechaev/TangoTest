@@ -21,6 +21,7 @@ import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -88,10 +89,12 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
     private boolean isLocalized = false;
     private boolean isCreateSurfaceAndScene = false;
+    private boolean isHoldChecked = false;
 
     private int displayRotation;
 
     private double startModificationCameraX, startModificationCameraZ, startModificationFixtureX, startModificationFixtureZ,
+            startHoldingX, startHoldingZ, startHoldingRotationAngle, startHoldingCameraAngle,
             startModificationRotationAngle, startModificationCameraAngle,
             startModificationFixtureScaleX, startModificationFixtureScaleY, startModificationFixtureScaleZ;
     private Fixture startModificationFixture;
@@ -554,25 +557,21 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 // Update the camera pose from the renderer
                                 renderer.updateRenderCameraPose(lastFramePose);
                                 cameraPoseTimestamp = lastFramePose.timestamp;
-                                if (modifyFixture.getVisibility() == View.VISIBLE && previousObject != null && holdCheckbox.isChecked()) {
+                                if (modifyFixture.getVisibility() == View.VISIBLE && previousObject != null && holdCheckbox.isChecked() && isHoldChecked) {
                                     float[] rotation = lastFramePose.getRotationAsFloats();
                                     Quaternion q = new Quaternion(rotation[3], rotation[0], rotation[1], rotation[2]);
-                                    double rotationAngle = Math.toDegrees(-q.getRotationY()) - startModificationCameraAngle;
-                                    previousObject.setRotY(startModificationRotationAngle + rotationAngle);
-                                    FixturesRepository.getInstance().getFixture(startModificationFixture.getName())
-                                            .setRotationAngle(startModificationFixture.getRotationAngle() + rotationAngle);
+                                    double rotationAngle = Math.toDegrees(-q.getRotationY()) - startHoldingCameraAngle;
+                                    previousObject.setRotY(startHoldingRotationAngle + rotationAngle);
+                                    Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
+                                    fixture.setRotationAngle(startModificationFixture.getRotationAngle() + rotationAngle);
 
                                     double angle = Math.toRadians(rotationAngle);
 
-                                    double x1 = startModificationFixtureX - startModificationCameraX;
-                                    double z1 = startModificationFixtureZ - startModificationCameraZ;
-
-                                    double x2 = x1 * Math.cos(angle) - z1 * Math.sin(angle) + renderer.getCameraPosition().x;
-                                    double z2 = x1 * Math.sin(angle) + z1 * Math.cos(angle) + renderer.getCameraPosition().z;
+                                    double x2 = startHoldingX * Math.cos(angle) - startHoldingZ * Math.sin(angle) + renderer.getCameraPosition().x;
+                                    double z2 = startHoldingX * Math.sin(angle) + startHoldingZ * Math.cos(angle) + renderer.getCameraPosition().z;
 
                                     previousObject.setPosition(x2, previousObject.getY(), z2);
 
-                                    Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
                                     fixture.setPosition(new Point((int) (x2 * 100f - fixture.getWidth() * 0.5f),
                                             (int) (z2 * 100f - fixture.getDepth() * 0.5f)));
 
@@ -860,7 +859,18 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     ((TextView) modifyFixture.findViewById(R.id.modify_fixture_name))
                             .setText(String.format(getResources().getString(R.string.fixture_dialog_modify_fixture), fixture.getName()));
 
-                    holdCheckbox.setChecked(false);
+                    isHoldChecked = false;
+                    holdCheckbox.setChecked(isHoldChecked);
+                    holdCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            startHoldingX = previousObject.getX() - renderer.getCameraPosition().x;
+                            startHoldingZ = previousObject.getZ() - renderer.getCameraPosition().z;
+                            startHoldingRotationAngle = Math.toDegrees(previousObject.getRotY());
+                            startHoldingCameraAngle = Math.toDegrees(renderer.getCameraAngle());
+                            isHoldChecked = isChecked;
+                        }
+                    });
 
                     final TextView fixtureHeight = (TextView) modifyFixture.findViewById(R.id.modify_fixture_height);
                     fixtureHeight.setText(String.valueOf(fixture.getHeight() / 100f));
