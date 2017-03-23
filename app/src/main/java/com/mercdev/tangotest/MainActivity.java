@@ -864,10 +864,12 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     holdCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            startHoldingX = previousObject.getX() - renderer.getCameraPosition().x;
-                            startHoldingZ = previousObject.getZ() - renderer.getCameraPosition().z;
-                            startHoldingRotationAngle = Math.toDegrees(previousObject.getRotY());
-                            startHoldingCameraAngle = Math.toDegrees(renderer.getCameraAngle());
+                            if (isChecked) {
+                                startHoldingX = previousObject.getX() - renderer.getCameraPosition().x;
+                                startHoldingZ = previousObject.getZ() - renderer.getCameraPosition().z;
+                                startHoldingRotationAngle = Math.toDegrees(previousObject.getRotY());
+                                startHoldingCameraAngle = Math.toDegrees(renderer.getCameraAngle());
+                            }
                             isHoldChecked = isChecked;
                         }
                     });
@@ -878,6 +880,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 float value = fixture.getHeight() * 0.01f;
                                 value -= 0.01f;
                                 if (value > 0f) {
@@ -893,6 +898,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 float value = fixture.getHeight() * 0.01f;
                                 value += 0.01f;
                                 fixtureHeight.setText(String.valueOf(value));
@@ -908,6 +916,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 previousObject.setPosition(previousObject.getX() - 0.01f, previousObject.getY(), previousObject.getZ());
                                 fixture.setX(fixture.getPosition().x - 1);
 
@@ -920,6 +931,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 previousObject.setPosition(previousObject.getX() + 0.01f, previousObject.getY(), previousObject.getZ());
                                 fixture.setX(fixture.getPosition().x + 1);
 
@@ -935,6 +949,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 float value = fixture.getWidth() * 0.01f;
                                 value -= 0.01f;
                                 if (value > 0f) {
@@ -952,6 +969,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 float value = fixture.getWidth() * 0.01f;
                                 value += 0.01f;
                                 fixtureWidth.setText(String.valueOf(value));
@@ -969,6 +989,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 previousObject.setPosition(previousObject.getX(), previousObject.getY(), previousObject.getZ() - 0.01f);
                                 fixture.setY(fixture.getPosition().y - 1);
 
@@ -981,6 +1004,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 previousObject.setPosition(previousObject.getX(), previousObject.getY(), previousObject.getZ() + 0.01f);
                                 fixture.setY(fixture.getPosition().y + 1);
 
@@ -996,6 +1022,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 float value = fixture.getDepth() * 0.01f;
                                 value -= 0.01f;
                                 if (value > 0f) {
@@ -1013,6 +1042,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 float value = fixture.getDepth() * 0.01f;
                                 value += 0.01f;
                                 if (value > 0f) {
@@ -1032,6 +1064,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 double value = fixture.getRotationAngle();
                                 value -= 1;
                                 if (Double.compare(value, 0) < 0) {
@@ -1049,6 +1084,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
                                 double value = fixture.getRotationAngle();
                                 value += 1;
                                 if (Double.compare(value, 360) >= 0) {
