@@ -50,6 +50,7 @@ import org.rajawali3d.scene.ASceneFrameCallback;
 import org.rajawali3d.util.OnObjectPickedListener;
 import org.rajawali3d.view.SurfaceView;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -688,6 +689,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         fixtures.add(new Fixture("Fixture3", new Point(-835, 40), 280, 1180, 25, 0f, fixtureColor));
         fixtures.add(new Fixture("Fixture4", new Point(-835, -620), 280, 1180, 25, 0f, fixtureColor));
         fixtures.add(new Fixture("Fixture5", new Point(-257, -290), 100, 100, 100, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture6", new Point(-457, -390), 100, 100, 100, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture7", new Point(-657, -490), 100, 100, 100, 0f, fixtureColor));
 
         FixturesRepository.getInstance().setFixtures(fixtures);
     }
@@ -875,7 +878,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     });
 
                     final TextView fixtureHeight = (TextView) modifyFixture.findViewById(R.id.modify_fixture_height);
-                    fixtureHeight.setText(String.valueOf(fixture.getHeight() / 100f));
+                    fixtureHeight.setText(new DecimalFormat("##.##").format(fixture.getHeight() / 100f));
                     modifyFixture.findViewById(R.id.modify_fixture_height_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
                         public void onTouchRepeat(View view) {
@@ -886,7 +889,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 float value = fixture.getHeight() * 0.01f;
                                 value -= 0.01f;
                                 if (value > 0f) {
-                                    fixtureHeight.setText(String.valueOf(value));
+                                    fixtureHeight.setText(new DecimalFormat("##.##").format(value));
                                     previousObject.setScaleY(value / ((FixtureRectangularPrism) previousObject).getHeight());
                                     previousObject.moveUp(-0.005);
                                     fixture.setHeight((int) (value * 100f));
@@ -903,7 +906,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 }
                                 float value = fixture.getHeight() * 0.01f;
                                 value += 0.01f;
-                                fixtureHeight.setText(String.valueOf(value));
+                                fixtureHeight.setText(new DecimalFormat("##.##").format(value));
                                 previousObject.setScaleY(value / ((FixtureRectangularPrism) previousObject).getHeight());
                                 previousObject.moveUp(0.005);
                                 fixture.setHeight((int) (value * 100f));
@@ -946,7 +949,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     });
 
                     final TextView fixtureWidth = (TextView) modifyFixture.findViewById(R.id.modify_fixture_width);
-                    fixtureWidth.setText(String.valueOf(fixture.getWidth() / 100f));
+                    fixtureWidth.setText(new DecimalFormat("##.##").format(fixture.getWidth() / 100f));
                     modifyFixture.findViewById(R.id.modify_fixture_width_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
                         public void onTouchRepeat(View view) {
@@ -957,7 +960,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 float value = fixture.getWidth() * 0.01f;
                                 value -= 0.01f;
                                 if (value > 0f) {
-                                    fixtureWidth.setText(String.valueOf(value));
+                                    fixtureWidth.setText(new DecimalFormat("##.##").format(value));
                                     previousObject.setScaleX(value / ((FixtureRectangularPrism) previousObject).getWidth());
                                     fixture.setWidth((int) (value * 100f));
                                 }
@@ -976,7 +979,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 }
                                 float value = fixture.getWidth() * 0.01f;
                                 value += 0.01f;
-                                fixtureWidth.setText(String.valueOf(value));
+                                fixtureWidth.setText(new DecimalFormat("##.##").format(value));
                                 previousObject.setScaleX(value / ((FixtureRectangularPrism) previousObject).getWidth());
                                 fixture.setWidth((int) (value * 100f));
 
@@ -1021,7 +1024,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     });
 
                     final TextView fixtureDepth = (TextView) modifyFixture.findViewById(R.id.modify_fixture_depth);
-                    fixtureDepth.setText(String.valueOf(fixture.getDepth() / 100f));
+                    fixtureDepth.setText(new DecimalFormat("##.##").format(fixture.getDepth() / 100f));
                     modifyFixture.findViewById(R.id.modify_fixture_depth_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
                         public void onTouchRepeat(View view) {
@@ -1032,7 +1035,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 float value = fixture.getDepth() * 0.01f;
                                 value -= 0.01f;
                                 if (value > 0f) {
-                                    fixtureDepth.setText(String.valueOf(value));
+                                    fixtureDepth.setText(new DecimalFormat("##.##").format(value));
                                     previousObject.setScaleZ(value / ((FixtureRectangularPrism) previousObject).getDepth());
                                     fixture.setDepth((int) (value * 100f));
 
@@ -1051,14 +1054,12 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 }
                                 float value = fixture.getDepth() * 0.01f;
                                 value += 0.01f;
-                                if (value > 0f) {
-                                    fixtureDepth.setText(String.valueOf(value));
-                                    previousObject.setScaleZ(value / ((FixtureRectangularPrism) previousObject).getDepth());
-                                    fixture.setDepth((int) (value * 100f));
+                                fixtureDepth.setText(new DecimalFormat("##.##").format(value));
+                                previousObject.setScaleZ(value / ((FixtureRectangularPrism) previousObject).getDepth());
+                                fixture.setDepth((int) (value * 100f));
 
-                                    minimap.processFixtures();
-                                    minimap.postInvalidate();
-                                }
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
                             }
                         }
                     });
