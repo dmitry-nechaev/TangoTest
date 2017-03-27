@@ -886,13 +886,12 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                float value = fixture.getHeight() * 0.01f;
-                                value -= 0.01f;
-                                if (value > 0f) {
-                                    fixtureHeight.setText(new DecimalFormat("##.##").format(value));
-                                    previousObject.setScaleY(value / ((FixtureRectangularPrism) previousObject).getHeight());
+                                int value = fixture.getHeight() - 1;
+                                if (value > 0) {
+                                    fixtureHeight.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                    previousObject.setScaleY(value * 0.01f / ((FixtureRectangularPrism) previousObject).getHeight());
                                     previousObject.moveUp(-0.005);
-                                    fixture.setHeight((int) (value * 100f));
+                                    fixture.setHeight(value);
                                 }
                             }
                         }
@@ -904,12 +903,11 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                float value = fixture.getHeight() * 0.01f;
-                                value += 0.01f;
-                                fixtureHeight.setText(new DecimalFormat("##.##").format(value));
-                                previousObject.setScaleY(value / ((FixtureRectangularPrism) previousObject).getHeight());
+                                int value = fixture.getHeight() + 1;
+                                fixtureHeight.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                previousObject.setScaleY(value * 0.01f / ((FixtureRectangularPrism) previousObject).getHeight());
                                 previousObject.moveUp(0.005);
-                                fixture.setHeight((int) (value * 100f));
+                                fixture.setHeight(value);
                             }
                         }
                     });
@@ -957,12 +955,11 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                float value = fixture.getWidth() * 0.01f;
-                                value -= 0.01f;
-                                if (value > 0f) {
-                                    fixtureWidth.setText(new DecimalFormat("##.##").format(value));
-                                    previousObject.setScaleX(value / ((FixtureRectangularPrism) previousObject).getWidth());
-                                    fixture.setWidth((int) (value * 100f));
+                                int value = fixture.getWidth() - 1;
+                                if (value > 0) {
+                                    fixtureWidth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                    previousObject.setScaleX(value * 0.01f / ((FixtureRectangularPrism) previousObject).getWidth());
+                                    fixture.setWidth(value);
                                 }
 
                                 minimap.processFixtures();
@@ -977,11 +974,10 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                float value = fixture.getWidth() * 0.01f;
-                                value += 0.01f;
-                                fixtureWidth.setText(new DecimalFormat("##.##").format(value));
-                                previousObject.setScaleX(value / ((FixtureRectangularPrism) previousObject).getWidth());
-                                fixture.setWidth((int) (value * 100f));
+                                int value = fixture.getWidth() + 1;
+                                fixtureWidth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                previousObject.setScaleX(value * 0.01f / ((FixtureRectangularPrism) previousObject).getWidth());
+                                fixture.setWidth(value);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1032,12 +1028,11 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                float value = fixture.getDepth() * 0.01f;
-                                value -= 0.01f;
-                                if (value > 0f) {
-                                    fixtureDepth.setText(new DecimalFormat("##.##").format(value));
-                                    previousObject.setScaleZ(value / ((FixtureRectangularPrism) previousObject).getDepth());
-                                    fixture.setDepth((int) (value * 100f));
+                                int value = fixture.getDepth() - 1;
+                                if (value > 0) {
+                                    fixtureDepth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                    previousObject.setScaleZ(value * 0.01f / ((FixtureRectangularPrism) previousObject).getDepth());
+                                    fixture.setDepth(value);
 
                                     minimap.processFixtures();
                                     minimap.postInvalidate();
@@ -1052,11 +1047,10 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                float value = fixture.getDepth() * 0.01f;
-                                value += 0.01f;
-                                fixtureDepth.setText(new DecimalFormat("##.##").format(value));
-                                previousObject.setScaleZ(value / ((FixtureRectangularPrism) previousObject).getDepth());
-                                fixture.setDepth((int) (value * 100f));
+                                int value = fixture.getDepth() + 1;
+                                fixtureDepth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                previousObject.setScaleZ(value * 0.01f / ((FixtureRectangularPrism) previousObject).getDepth());
+                                fixture.setDepth(value);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1073,8 +1067,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     holdCheckbox.setChecked(false);
                                 }
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
-                                double value = storedFixture.getRotationAngle();
-                                value -= 1;
+                                double value = storedFixture.getRotationAngle() - 1;
                                 if (Double.compare(value, 0) < 0) {
                                     value = 360 + value;
                                 }
@@ -1094,8 +1087,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     holdCheckbox.setChecked(false);
                                 }
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
-                                double value = storedFixture.getRotationAngle();
-                                value += 1;
+                                double value = storedFixture.getRotationAngle() + 1;
                                 if (Double.compare(value, 360) >= 0) {
                                     value = value - 360;
                                 }
