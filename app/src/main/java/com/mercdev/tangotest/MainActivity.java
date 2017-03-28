@@ -564,7 +564,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     double rotationAngle = Math.toDegrees(-q.getRotationY()) - startHoldingCameraAngle;
                                     previousObject.setRotY(startHoldingRotationAngle + rotationAngle);
                                     Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
-                                    fixture.setRotationAngle(startModificationFixture.getRotationAngle() + rotationAngle);
+                                    fixture.setRotationAngle(startHoldingRotationAngle + rotationAngle);
 
                                     double angle = Math.toRadians(rotationAngle);
 
@@ -684,13 +684,13 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         ArrayList<Fixture> fixtures = new ArrayList<>();
 
         int fixtureColor = getResources().getColor(R.color.object_color);
-        fixtures.add(new Fixture("Fixture1", new Point(345, -620), 280, 25, 685, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture2", new Point(-860, -620), 280, 25, 685, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture1", new Point(345, -845), 280, 25, 910, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture2", new Point(-860, -845), 280, 25, 910, 0f, fixtureColor));
         fixtures.add(new Fixture("Fixture3", new Point(-835, 40), 280, 1180, 25, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture4", new Point(-835, -620), 280, 1180, 25, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture5", new Point(-257, -290), 100, 100, 100, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture6", new Point(-457, -390), 100, 100, 100, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture7", new Point(-657, -490), 100, 100, 100, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture4", new Point(-835, -845), 280, 1180, 25, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture5", new Point(-257, -290), 138, 86, 210, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture6", new Point(-457, -390), 138, 210, 86, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture7", new Point(-657, -490), 138, 210, 86, 0f, fixtureColor));
 
         FixturesRepository.getInstance().setFixtures(fixtures);
     }
