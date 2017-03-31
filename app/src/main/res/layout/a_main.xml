@@ -9,344 +9,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <FrameLayout
-            android:layout_width="300dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="left"
-            android:layout_margin="16dp"
-            android:alpha="0.75"
-            android:background="@color/colorPrimaryDark"
-            android:padding="16dp">
-
-            <LinearLayout
-                android:id="@+id/nothing_targeted_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    style="@style/fixture_modal_text"
-                    android:layout_marginBottom="32dp"
-                    android:text="@string/fixture_dialog_nothing_targeted" />
-
-                <TextView
-                    style="@style/fixture_modal_text"
-                    android:text="@string/fixture_dialog_nothing_targeted_hint" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/targeted_fixture_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/fixture_name"
-                    style="@style/fixture_modal_text"
-                    android:layout_marginBottom="16dp" />
-
-                <TextView
-                    android:id="@+id/fixture_distance"
-                    style="@style/fixture_modal_text"
-                    android:layout_marginBottom="16dp" />
-
-                <TextView
-                    android:id="@+id/fixture_height"
-                    style="@style/fixture_modal_text"
-                    android:layout_marginBottom="4dp" />
-
-                <TextView
-                    android:id="@+id/fixture_width"
-                    style="@style/fixture_modal_text"
-                    android:layout_marginBottom="4dp" />
-
-                <TextView
-                    android:id="@+id/fixture_depth"
-                    style="@style/fixture_modal_text"
-                    android:layout_marginBottom="4dp" />
-
-                <Button
-                    android:id="@+id/fixture_modify"
-                    style="@style/fixture_modal_button"
-                    android:layout_marginBottom="4dp"
-                    android:text="@string/fixture_dialog_modify" />
-
-                <Button
-                    android:id="@+id/fixture_delete"
-                    style="@style/fixture_modal_button"
-                    android:layout_marginBottom="4dp"
-                    android:text="@string/fixture_dialog_delete" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/delete_fixture_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/delete_fixture_name"
-                    style="@style/fixture_modal_text"
-                    android:layout_marginBottom="16dp" />
-
-                <TextView
-                    android:id="@+id/delete_fixture_text"
-                    style="@style/fixture_modal_text"
-                    android:layout_marginBottom="16dp"
-                    android:text="@string/fixture_dialog_delete_fixture_text" />
-
-                <Button
-                    android:id="@+id/delete_fixture_yes"
-                    style="@style/fixture_modal_button"
-                    android:layout_marginBottom="4dp"
-                    android:text="@android:string/yes" />
-
-                <Button
-                    android:id="@+id/delete_fixture_no"
-                    style="@style/fixture_modal_button"
-                    android:layout_marginBottom="4dp"
-                    android:text="@android:string/no" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/modify_fixture_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/modify_fixture_name"
-                    style="@style/fixture_modal_text"
-                    android:layout_marginBottom="16dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.1"
-                        android:gravity="center"
-                        android:text="H"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_height_minus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="-"
-                        android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:id="@+id/modify_fixture_height"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.2"
-                        android:gravity="center"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_height_plus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="+"
-                        android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.3"
-                        android:gravity="center"
-                        android:text="X"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_x_minus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="-"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_x_plus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="+"
-                        android:textColor="@android:color/black" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.1"
-                        android:gravity="center"
-                        android:text="W"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_width_minus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="-"
-                        android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:id="@+id/modify_fixture_width"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.2"
-                        android:gravity="center"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_width_plus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="+"
-                        android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.3"
-                        android:gravity="center"
-                        android:text="Y"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_y_minus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="-"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_y_plus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="+"
-                        android:textColor="@android:color/black" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.1"
-                        android:gravity="center"
-                        android:text="D"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_depth_minus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="-"
-                        android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:id="@+id/modify_fixture_depth"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.2"
-                        android:gravity="center"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_depth_plus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="+"
-                        android:textColor="@android:color/black" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.3"
-                        android:gravity="center"
-                        android:text="@string/fixture_dialog_angle"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_angle_minus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="-"
-                        android:textColor="@android:color/black" />
-
-                    <Button
-                        android:id="@+id/modify_fixture_angle_plus"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:text="+"
-                        android:textColor="@android:color/black" />
-
-                </LinearLayout>
-
-                <CheckBox
-                    android:id="@+id/modify_fixture_hold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
-                    android:checked="false"
-                    android:text="@string/fixture_dialog_hold"
-                    android:textColor="@android:color/black" />
-
-                <Button
-                    android:id="@+id/modify_fixture_save"
-                    style="@style/fixture_modal_button"
-                    android:layout_marginBottom="4dp"
-                    android:text="@string/fixture_dialog_save" />
-
-                <Button
-                    android:id="@+id/modify_fixture_cancel"
-                    style="@style/fixture_modal_button"
-                    android:layout_marginBottom="4dp"
-                    android:text="@android:string/cancel" />
-
-            </LinearLayout>
-
-        </FrameLayout>
-
-        <FrameLayout
-            android:id="@+id/map_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|top"
-            android:layout_margin="16dp"
-            android:alpha="0.75"
-            android:background="@color/colorPrimaryDark">
-
-            <com.mercdev.tangotest.Minimap
-                android:id="@+id/minimap"
-                android:layout_width="@dimen/minimap_width"
-                android:layout_height="@dimen/minimap_height" />
-        </FrameLayout>
-
         <View
             android:id="@+id/marker"
             android:layout_width="@dimen/marker_size"
@@ -358,51 +20,400 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="?android:attr/actionBarSize"
-        android:background="@color/colorPrimary"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-        <ImageButton
-            android:id="@+id/home"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_home" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="?android:attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <ImageButton
-            android:id="@+id/switch_camera_visibility"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_camera" />
+            <ImageButton
+                android:id="@+id/home"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_home" />
 
-        <ImageButton
-            android:id="@+id/switch_3d_visibility"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_glasses" />
+            <ImageButton
+                android:id="@+id/switch_camera_visibility"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_camera" />
 
-        <ImageButton
-            android:id="@+id/switch_map_visibility"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_map" />
+            <ImageButton
+                android:id="@+id/switch_3d_visibility"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_glasses" />
 
-        <ImageButton
-            android:id="@+id/adf_remove_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_remove_file" />
+            <ImageButton
+                android:id="@+id/switch_map_visibility"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_map" />
 
+            <ImageButton
+                android:id="@+id/adf_remove_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@android:color/transparent"
+                android:src="@drawable/ic_remove_file" />
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <FrameLayout
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:layout_margin="16dp"
+                android:alpha="0.75"
+                android:background="@color/colorPrimaryDark"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:id="@+id/nothing_targeted_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/fixture_modal_text"
+                        android:layout_marginBottom="32dp"
+                        android:text="@string/fixture_dialog_nothing_targeted" />
+
+                    <TextView
+                        style="@style/fixture_modal_text"
+                        android:text="@string/fixture_dialog_nothing_targeted_hint" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/targeted_fixture_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/fixture_name"
+                        style="@style/fixture_modal_text"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:id="@+id/fixture_distance"
+                        style="@style/fixture_modal_text"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:id="@+id/fixture_height"
+                        style="@style/fixture_modal_text"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/fixture_width"
+                        style="@style/fixture_modal_text"
+                        android:layout_marginBottom="4dp" />
+
+                    <TextView
+                        android:id="@+id/fixture_depth"
+                        style="@style/fixture_modal_text"
+                        android:layout_marginBottom="4dp" />
+
+                    <Button
+                        android:id="@+id/fixture_modify"
+                        style="@style/fixture_modal_button"
+                        android:layout_marginBottom="4dp"
+                        android:text="@string/fixture_dialog_modify" />
+
+                    <Button
+                        android:id="@+id/fixture_delete"
+                        style="@style/fixture_modal_button"
+                        android:layout_marginBottom="4dp"
+                        android:text="@string/fixture_dialog_delete" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/delete_fixture_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/delete_fixture_name"
+                        style="@style/fixture_modal_text"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:id="@+id/delete_fixture_text"
+                        style="@style/fixture_modal_text"
+                        android:layout_marginBottom="16dp"
+                        android:text="@string/fixture_dialog_delete_fixture_text" />
+
+                    <Button
+                        android:id="@+id/delete_fixture_yes"
+                        style="@style/fixture_modal_button"
+                        android:layout_marginBottom="4dp"
+                        android:text="@android:string/yes" />
+
+                    <Button
+                        android:id="@+id/delete_fixture_no"
+                        style="@style/fixture_modal_button"
+                        android:layout_marginBottom="4dp"
+                        android:text="@android:string/no" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/modify_fixture_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/modify_fixture_name"
+                        style="@style/fixture_modal_text"
+                        android:layout_marginBottom="16dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.1"
+                            android:gravity="center"
+                            android:text="H"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_height_minus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="-"
+                            android:textColor="@android:color/black" />
+
+                        <TextView
+                            android:id="@+id/modify_fixture_height"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.2"
+                            android:gravity="center"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_height_plus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="+"
+                            android:textColor="@android:color/black" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.3"
+                            android:gravity="center"
+                            android:text="X"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_x_minus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="-"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_x_plus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="+"
+                            android:textColor="@android:color/black" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.1"
+                            android:gravity="center"
+                            android:text="W"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_width_minus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="-"
+                            android:textColor="@android:color/black" />
+
+                        <TextView
+                            android:id="@+id/modify_fixture_width"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.2"
+                            android:gravity="center"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_width_plus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="+"
+                            android:textColor="@android:color/black" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.3"
+                            android:gravity="center"
+                            android:text="Y"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_y_minus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="-"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_y_plus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="+"
+                            android:textColor="@android:color/black" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.1"
+                            android:gravity="center"
+                            android:text="D"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_depth_minus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="-"
+                            android:textColor="@android:color/black" />
+
+                        <TextView
+                            android:id="@+id/modify_fixture_depth"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.2"
+                            android:gravity="center"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_depth_plus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="+"
+                            android:textColor="@android:color/black" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.3"
+                            android:gravity="center"
+                            android:text="@string/fixture_dialog_angle"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_angle_minus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="-"
+                            android:textColor="@android:color/black" />
+
+                        <Button
+                            android:id="@+id/modify_fixture_angle_plus"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:text="+"
+                            android:textColor="@android:color/black" />
+
+                    </LinearLayout>
+
+                    <CheckBox
+                        android:id="@+id/modify_fixture_hold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:checked="false"
+                        android:text="@string/fixture_dialog_hold"
+                        android:textColor="@android:color/black" />
+
+                    <Button
+                        android:id="@+id/modify_fixture_save"
+                        style="@style/fixture_modal_button"
+                        android:layout_marginBottom="4dp"
+                        android:text="@string/fixture_dialog_save" />
+
+                    <Button
+                        android:id="@+id/modify_fixture_cancel"
+                        style="@style/fixture_modal_button"
+                        android:layout_marginBottom="4dp"
+                        android:text="@android:string/cancel" />
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/map_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|top"
+                android:layout_margin="16dp"
+                android:alpha="0.75"
+                android:background="@color/colorPrimaryDark">
+
+                <com.mercdev.tangotest.Minimap
+                    android:id="@+id/minimap"
+                    android:layout_width="@dimen/minimap_width"
+                    android:layout_height="@dimen/minimap_height" />
+            </FrameLayout>
+        </FrameLayout>
     </LinearLayout>
 
     <FrameLayout
