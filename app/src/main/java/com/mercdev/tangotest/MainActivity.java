@@ -571,10 +571,12 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     double x2 = startHoldingX * Math.cos(angle) - startHoldingZ * Math.sin(angle) + renderer.getCameraPosition().x;
                                     double z2 = startHoldingX * Math.sin(angle) + startHoldingZ * Math.cos(angle) + renderer.getCameraPosition().z;
 
-                                    previousObject.setPosition(x2, previousObject.getY(), z2);
+                                    previousObject.setX(x2);
+                                    previousObject.setZ(z2);
 
                                     fixture.setPosition(new Point((int) (x2 * 100f - fixture.getWidth() * 0.5f),
                                             (int) (z2 * 100f - fixture.getDepth() * 0.5f)));
+                                    scaleObject(fixture);
 
                                     minimap.processFixtures();
                                 }
@@ -688,9 +690,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         fixtures.add(new Fixture("Fixture2", new Point(-860, -845), 280, 25, 910, 0f, fixtureColor));
         fixtures.add(new Fixture("Fixture3", new Point(-835, 40), 280, 1180, 25, 0f, fixtureColor));
         fixtures.add(new Fixture("Fixture4", new Point(-835, -845), 280, 1180, 25, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture5", new Point(-257, -290), 138, 86, 210, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture6", new Point(-457, -390), 138, 210, 86, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture7", new Point(-657, -490), 138, 210, 86, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture5", new Point(-257, -290), 137, 86, 210, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture6", new Point(-457, -390), 137, 86, 210, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture7", new Point(-657, -490), 137, 210, 86, 0f, fixtureColor));
 
         FixturesRepository.getInstance().setFixtures(fixtures);
     }
@@ -920,7 +922,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                previousObject.setPosition(previousObject.getX() - 0.01f, previousObject.getY(), previousObject.getZ());
+                                previousObject.setX(previousObject.getX() - 0.01f);
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
                                 storedFixture.setX(storedFixture.getPosition().x - 1);
 
@@ -936,7 +938,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                previousObject.setPosition(previousObject.getX() + 0.01f, previousObject.getY(), previousObject.getZ());
+                                previousObject.setX(previousObject.getX() + 0.01f);
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
                                 storedFixture.setX(storedFixture.getPosition().x + 1);
 
@@ -957,9 +959,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 }
                                 int value = fixture.getWidth() - 1;
                                 if (value > 0) {
-                                    fixtureWidth.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                    previousObject.setScaleX(value * 0.01f / ((FixtureRectangularPrism) previousObject).getWidth());
                                     fixture.setWidth(value);
+                                    fixtureWidth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                    scaleObject(fixture);
                                 }
 
                                 minimap.processFixtures();
@@ -975,9 +977,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     holdCheckbox.setChecked(false);
                                 }
                                 int value = fixture.getWidth() + 1;
-                                fixtureWidth.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                previousObject.setScaleX(value * 0.01f / ((FixtureRectangularPrism) previousObject).getWidth());
                                 fixture.setWidth(value);
+                                fixtureWidth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                scaleObject(fixture);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -993,7 +995,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                previousObject.setPosition(previousObject.getX(), previousObject.getY(), previousObject.getZ() - 0.01f);
+                                previousObject.setZ(previousObject.getZ() - 0.01f);
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
                                 storedFixture.setY(storedFixture.getPosition().y - 1);
 
@@ -1009,7 +1011,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 if (isHoldChecked && holdCheckbox.isChecked()) {
                                     holdCheckbox.setChecked(false);
                                 }
-                                previousObject.setPosition(previousObject.getX(), previousObject.getY(), previousObject.getZ() + 0.01f);
+                                previousObject.setZ(previousObject.getZ() + 0.01f);
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
                                 storedFixture.setY(storedFixture.getPosition().y + 1);
 
@@ -1030,9 +1032,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 }
                                 int value = fixture.getDepth() - 1;
                                 if (value > 0) {
-                                    fixtureDepth.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                    previousObject.setScaleZ(value * 0.01f / ((FixtureRectangularPrism) previousObject).getDepth());
                                     fixture.setDepth(value);
+                                    fixtureDepth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                    scaleObject(fixture);
 
                                     minimap.processFixtures();
                                     minimap.postInvalidate();
@@ -1048,9 +1050,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     holdCheckbox.setChecked(false);
                                 }
                                 int value = fixture.getDepth() + 1;
-                                fixtureDepth.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                previousObject.setScaleZ(value * 0.01f / ((FixtureRectangularPrism) previousObject).getDepth());
                                 fixture.setDepth(value);
+                                fixtureDepth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                scaleObject(fixture);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1073,6 +1075,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 }
                                 previousObject.setRotY(value);
                                 storedFixture.setRotationAngle(value);
+                                scaleObject(storedFixture);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1093,6 +1096,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 }
                                 previousObject.setRotY(value);
                                 storedFixture.setRotationAngle(value);
+                                scaleObject(storedFixture);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1126,6 +1130,32 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         }
     }
 
+    private void scaleObject(Fixture fixture) {
+        double fullScaleX = (fixture.getWidth() * 0.01f - ((FixtureRectangularPrism) previousObject).getWidth()) / ((FixtureRectangularPrism) previousObject).getWidth();
+        double fullScaleZ = (fixture.getDepth() * 0.01f - ((FixtureRectangularPrism) previousObject).getDepth()) / ((FixtureRectangularPrism) previousObject).getDepth();
+        //double fullScaleX = fixture.getWidth() * 0.01f / ((FixtureRectangularPrism) previousObject).getWidth();
+        //double fullScaleZ = fixture.getDepth() * 0.01f / ((FixtureRectangularPrism) previousObject).getDepth();
+        double cos = Math.abs(Math.cos(Math.toRadians(fixture.getRotationAngle())));
+        double sin = Math.abs(Math.sin(Math.toRadians(fixture.getRotationAngle())));
+        double mcos = Math.tan(Math.cos(Math.toRadians(2 * fixture.getRotationAngle()))) / Math.PI + 0.5;
+        double msin = Math.tan(Math.sin(Math.toRadians(2 * fixture.getRotationAngle()) - Math.PI * 0.5f)) / Math.PI + 0.5;
+
+        /*double scaleX = 1 + fullScaleX * cos + fullScaleZ * sin;
+        double scaleZ = 1 + fullScaleZ * cos + fullScaleX * sin;*/
+
+        mcos = cos;
+        msin = sin;
+
+        double scaleX = (fixture.getWidth() * mcos + fixture.getDepth() * msin) * 0.01f /
+                (((FixtureRectangularPrism) previousObject).getWidth() * mcos + ((FixtureRectangularPrism) previousObject).getDepth() * msin);
+        double scaleZ = (fixture.getWidth() * msin + fixture.getDepth() * mcos) * 0.01f /
+                (((FixtureRectangularPrism) previousObject).getWidth() * msin + ((FixtureRectangularPrism) previousObject).getDepth() * mcos);
+
+        previousObject.setScaleX(scaleX);
+        previousObject.setScaleZ(scaleZ);
+        Log.d("scale", "rotation angle = " + fixture.getRotationAngle() +  ", mcos = " + mcos + ", msin = " + msin);
+    }
+
     private void setFixtureDistance() {
         if (previousObject != null) {
             Vector3 cameraPosition = renderer.getCameraPosition();
@@ -1145,7 +1175,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             @Override
             public void run() {
                 FixturesRepository.getInstance().updateFixture(startModificationFixture);
-                previousObject.setPosition(startModificationFixtureX, previousObject.getY(), startModificationFixtureZ);
+                previousObject.setX(startModificationFixtureX);
+                previousObject.setZ(startModificationFixtureZ);
                 previousObject.setRotY(startModificationRotationAngle);
                 previousObject.setScale(startModificationFixtureScaleX, startModificationFixtureScaleY, startModificationFixtureScaleZ);
                 previousObject.setColor(startModificationFixture.getColor());
