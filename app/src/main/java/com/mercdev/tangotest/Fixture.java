@@ -14,7 +14,7 @@ public class Fixture implements Cloneable {
     private int color;
     private double rotationAngle;
 
-    public Fixture(String name, Point position, int height, int width, int depth, double rotateAngle, int color) {
+    public Fixture(String name, Point position, int height, int width, int depth, double rotationAngle, int color) {
         this.name = name;
         this.position = new Point(position.x, position.y);
         this.height = height;
