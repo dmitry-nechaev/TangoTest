@@ -3,16 +3,38 @@ package com.mercdev.tangotest;
 import org.rajawali3d.Object3D;
 import org.rajawali3d.math.vector.Vector3;
 
+import java.util.ArrayList;
+
 /**
  * Created by nechaev on 02.03.2017.
  */
 
 public class FixtureRectangularPrism extends Object3D {
+
+    public class Facet {
+        private Vector3[] vertices;
+        private Vector3 normal;
+
+        public Facet(Vector3[] vertices, Vector3 normal) {
+            this.vertices = vertices;
+            this.normal = normal;
+        }
+
+        public Vector3 getNormal() {
+            return normal;
+        }
+
+        public Vector3[] getVertices() {
+            return vertices;
+        }
+    }
+
     private float mWidth;
     private float mHeight;
     private float mDepth;
     private boolean mCreateTextureCoords;
     private boolean mCreateVertexColorBuffer;
+    private ArrayList<Facet> facets = new ArrayList<>();
 
     /**
      * Creates a cube primitive. Calling this constructor will create texture coordinates but no vertex color buffer.
@@ -106,10 +128,10 @@ public class FixtureRectangularPrism extends Object3D {
                 -halfWidth, -halfHeight, -halfDepth, -halfWidth, -halfHeight, halfDepth,// 1-6-7-halfSize left
 
                 halfWidth, halfHeight, halfDepth, halfWidth, halfHeight, -halfDepth,
-                -halfWidth, halfHeight, -halfDepth, -halfWidth, halfHeight, halfDepth, // top
+                -halfWidth, halfHeight, -halfDepth, -halfWidth, halfHeight, halfDepth, // 0-5-6-1 top
 
                 halfWidth, -halfHeight, halfDepth, -halfWidth, -halfHeight, halfDepth,
-                -halfWidth, -halfHeight, -halfDepth, halfWidth, -halfHeight, -halfDepth,// bottom
+                -halfWidth, -halfHeight, -halfDepth, halfWidth, -halfHeight, -halfDepth,// 3-2-7-4 bottom
         };
 
         float[] textureCoords = null;
@@ -161,6 +183,17 @@ public class FixtureRectangularPrism extends Object3D {
 
         setData(vertices, normals, textureCoords, colors, indices, createVBOs);
 
+        for (int i = 0; i < vertices.length; i = i + 12) {
+            Vector3 vertex_1 = new Vector3(vertices[i], vertices[i + 1], vertices[i + 2]);
+            Vector3 vertex_2 = new Vector3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
+            Vector3 vertex_3 = new Vector3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
+            Vector3 vertex_4 = new Vector3(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
+            Vector3 normal = new Vector3(normals[i], normals[i + 1], normals[i + 2]);
+
+            Vector3[] facetVertices = {vertex_1, vertex_2, vertex_3, vertex_4};
+            facets.add(new Facet(facetVertices, normal));
+        }
+
         vertices = null;
         normals = null;
         skyboxTextureCoords = null;
@@ -179,6 +212,10 @@ public class FixtureRectangularPrism extends Object3D {
 
     public float getDepth() {
         return mDepth;
+    }
+
+    public ArrayList<Facet> getFacets() {
+        return facets;
     }
 
     public double getDistanceFromPoint(Vector3 position) {
