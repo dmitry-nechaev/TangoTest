@@ -388,7 +388,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     while (true) {
                                         TangoPointCloudData cloudData = tangoPointCloudManager.getLatestPointCloud();
                                         if (cloudDataTimestamp < cloudData.timestamp) {
-                                            final Matrix4 transformFloorMatrix4 = FloorPlaneDefinitionHelper.getTransformFloorMatrix4(FLOOR_DEFINITION_POINT.x, FLOOR_DEFINITION_POINT.y,
+                                            final Matrix4 transformFloorMatrix4 = PlaneDefinitionHelper.getFloorTransformMatrix4(FLOOR_DEFINITION_POINT.x, FLOOR_DEFINITION_POINT.y,
                                                                                                                                       cloudData, rgbTimestampGlThread);
 
                                             // TODO need add check defined plane is floor
@@ -710,8 +710,9 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 if (fixture != null && (previousObject == null || !previousObject.getName().equals(object.getName()))) {
                     previousObject = object;
                     showFixtureInformation(fixture);
-                    renderer.getObjectFinder().onFind();
                 }
+
+                renderer.getObjectFinder().onFind(object);
                 setFixtureDistance();
             } else {
                 onNoObjectPicked();
@@ -729,7 +730,6 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             }
 
             showNothingTargeted();
-            renderer.getObjectFinder().onLose();
 
             runOnUiThread(new Runnable() {
                 @Override
@@ -738,6 +738,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 }
             });
         }
+
+        renderer.getObjectFinder().onLose();
     }
 
     private void showCoverFrame(int coverText) {

@@ -107,7 +107,7 @@ public class AugmentedRealityRenderer extends Renderer {
         Vector3 floorPlaneVector = transformFloorMatrix4.getTranslation();
         double cameraHeight = floorPlaneVector.y;
 
-        objectFinder = new FloatObjectFinder(0.4f, 0.4f);
+        objectFinder = new FloatObjectFinder(0.07f, 0.07f);
         objectFinder.setDepthPosition(4.0f);
         getCurrentScene().addChild(objectFinder);
 
@@ -172,7 +172,6 @@ public class AugmentedRealityRenderer extends Renderer {
         Quaternion conjugateQuaternion = quaternion.conjugate();
         Vector3 translationVector = new Vector3(translation[0], translation[1], translation[2]);
 
-        objectFinder.setOrientation(translationVector, conjugateQuaternion);
         getCurrentCamera().setRotation(conjugateQuaternion);
         getCurrentCamera().setPosition(translationVector);
     }

@@ -16,7 +16,7 @@ import org.rajawali3d.math.vector.Vector3;
  * Created by gnusin on 16.02.2017.
  */
 
-public class FloorPlaneDefinitionHelper {
+public class PlaneDefinitionHelper {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     /**
@@ -24,7 +24,7 @@ public class FloorPlaneDefinitionHelper {
      * of the world feature pointed at the location the camera is looking.
      * It returns the transform of the fitted plane in a double array.
      */
-    public static Matrix4 getTransformFloorMatrix4(float u, float v, TangoPointCloudData pointCloud, double rgbTimestamp) {
+    public static Matrix4 getFloorTransformMatrix4(float u, float v, TangoPointCloudData pointCloud, double rgbTimestamp) {
         // We need to calculate the transform between the color camera at the
         // time the user clicked and the depth camera at the time the depth
         // cloud was acquired.
@@ -83,11 +83,11 @@ public class FloorPlaneDefinitionHelper {
                                         TangoSupport.TANGO_SUPPORT_ENGINE_TANGO,
                                         TangoSupport.ROTATION_IGNORED);
                         if (transform.statusCode == TangoPoseData.POSE_VALID) {
-                            float[] openGlTPlane = calculatePlaneTransform(
+                            Matrix4 openGlTPlane = getPlaneTransformMatrix4(
                                     intersectionPointPlaneModelPair.intersectionPoint,
                                     intersectionPointPlaneModelPair.planeModel, transform.matrix);
 
-                            return new Matrix4(openGlTPlane);
+                            return openGlTPlane;
                         } else {
                             Log.w(TAG, "Can't get depth camera transform at time " + pointCloud.timestamp);
                         }
@@ -102,24 +102,30 @@ public class FloorPlaneDefinitionHelper {
         return null;
     }
 
+
     /**
      * Calculate the pose of the plane based on the position and normal orientation of the plane
      * and align it with gravity.
+     * @param planePoint                    The point on plane (in local coordinate system)
+     * @param planeNormal                   The normal vector of plane (in local coordinate system)
+     * @param localTransformMatrix          The matrix for transformation from world's coordinate system to a local coordinate system
      */
-    private static float[] calculatePlaneTransform(double[] point, double normal[],
-                                            float[] openGlTdepth) {
-        // Vector aligned to gravity.
+    public static Matrix4 getPlaneTransformMatrix4(double[] planePoint, double[] planeNormal, float[] localTransformMatrix) {
+        // Vector aligned to gravity which transforms in local coordinate system
         float[] openGlUp = new float[]{0, 1, 0, 0};
-        float[] depthTOpenGl = new float[16];
-        Matrix.invertM(depthTOpenGl, 0, openGlTdepth, 0);
-        float[] depthUp = new float[4];
-        Matrix.multiplyMV(depthUp, 0, depthTOpenGl, 0, openGlUp, 0);
-        // Create the plane matrix transform in depth frame from a point, the plane normal and the
+        float[] openGlTransformMatrix = new float[16];
+        Matrix.invertM(openGlTransformMatrix, 0, localTransformMatrix, 0);
+        float[] localUp = new float[4];
+        Matrix.multiplyMV(localUp, 0, openGlTransformMatrix, 0, openGlUp, 0);
+        // Create the plane matrix transform in local coordinate system from a point, the plane normal and the
         // up vector.
-        float[] depthTplane = matrixFromPointNormalUp(point, normal, depthUp);
+        float[] depthTplane = matrixFromPointNormalUp(planePoint, planeNormal, localUp);
         float[] openGlTplane = new float[16];
-        Matrix.multiplyMM(openGlTplane, 0, openGlTdepth, 0, depthTplane, 0);
-        return openGlTplane;
+        // Converting plane coordinates to world's system coordinates.
+        // It will allow to get translate and rotation
+        // relative of world's coordinate system reference point
+        Matrix.multiplyMM(openGlTplane, 0, localTransformMatrix, 0, depthTplane, 0);
+        return new Matrix4(openGlTplane);
     }
 
     /**
