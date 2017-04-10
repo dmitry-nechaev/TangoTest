@@ -26,6 +26,7 @@
 
     <string name="fixture_dialog_modify_fixture" formatted="false">Modify %s</string>
     <string name="fixture_dialog_hold">Hold</string>
+    <string name="fixture_dialog_angle">Angle</string>
 
 
 </resources>
