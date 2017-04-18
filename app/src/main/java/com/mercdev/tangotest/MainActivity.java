@@ -784,6 +784,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     @Override
                     public void onClick(View v) {
                         showModifyFixture(fixture);
+                        renderer.getObjectFinder().hide();
                     }
                 });
                 targetedFixture.findViewById(R.id.fixture_delete).setOnClickListener(new View.OnClickListener() {
@@ -1099,6 +1100,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         public void onClick(View v) {
                             cancelFixtureModifications();
                             showFixtureInformation(fixture);
+                            renderer.getObjectFinder().show();
                         }
                     });
                     modifyFixture.findViewById(R.id.modify_fixture_save).setOnClickListener(new View.OnClickListener() {
@@ -1106,6 +1108,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                         public void onClick(View v) {
                             showFixtureInformation(fixture);
                             previousObject.setColor(fixture.getColor());
+                            renderer.getObjectFinder().show();
                         }
                     });
 

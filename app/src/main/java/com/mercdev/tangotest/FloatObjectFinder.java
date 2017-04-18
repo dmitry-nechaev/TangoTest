@@ -25,6 +25,7 @@ public class FloatObjectFinder extends Plane {
 
     private Object3D foundObject;
     private float depthPosition = 1.0f;
+    private boolean isHidden = false;
 
     public FloatObjectFinder(float width, float height) {
         super(width, height, 1, 1);
@@ -46,6 +47,14 @@ public class FloatObjectFinder extends Plane {
         setColor(DEFAULT_COLOR);
     }
 
+    public void hide() {
+        isHidden = true;
+    }
+
+    public void show() {
+        isHidden = false;
+    }
+
     @Override
     public void renderColorPicking(Camera camera, Material pickingMaterial) {
 
@@ -53,8 +62,10 @@ public class FloatObjectFinder extends Plane {
 
     @Override
     public void render(Camera camera, Matrix4 vpMatrix, Matrix4 projMatrix, Matrix4 vMatrix, Material sceneMaterial) {
-        calculatePositionAndOrientation(camera);
-        super.render(camera, vpMatrix, projMatrix, vMatrix, sceneMaterial);
+        if (!isHidden) {
+            calculatePositionAndOrientation(camera);
+            super.render(camera, vpMatrix, projMatrix, vMatrix, sceneMaterial);
+        }
     }
 
     private void init() {
