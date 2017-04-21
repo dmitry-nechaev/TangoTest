@@ -3,6 +3,7 @@ package com.mercdev.tangotest;
 import android.graphics.Color;
 import android.opengl.GLES20;
 import android.support.annotation.FloatRange;
+import android.support.annotation.NonNull;
 
 import org.rajawali3d.Object3D;
 import org.rajawali3d.cameras.Camera;
@@ -11,6 +12,7 @@ import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.primitives.Plane;
+import org.rajawali3d.util.OnObjectPickedListener;
 
 import java.util.ArrayList;
 
@@ -18,7 +20,7 @@ import java.util.ArrayList;
  * Created by gnusin on 20.03.2017.
  */
 
-public class FloatObjectFinder extends Plane {
+public class FloatObjectFinder extends Plane implements OnObjectPickedListener {
     private static final int DEFAULT_COLOR = Color.argb(255, 255, 0, 0);
     private static final int FIND_COLOR = Color.argb(255, 0, 128, 0);
 
@@ -27,7 +29,7 @@ public class FloatObjectFinder extends Plane {
     private float depthPosition = 1.0f;
     private boolean isHidden = false;
     private double distanceToFoundObject = 0.0d;
-    private OnDistanceMeasureListener listener;
+    private OnFloatObjectFinderListener listener;
 
     public FloatObjectFinder(float width, float height) {
         super(width, height, 1, 1);
@@ -38,17 +40,6 @@ public class FloatObjectFinder extends Plane {
         this.depthPosition = depthPosition;
     }
 
-    public void onFind(Object3D foundObject)
-    {
-        this.foundObject = foundObject;
-        setColor(FIND_COLOR);
-    }
-
-    public void onLose() {
-        foundObject = null;
-        setColor(DEFAULT_COLOR);
-    }
-
     public void hide() {
         isHidden = true;
     }
@@ -57,8 +48,22 @@ public class FloatObjectFinder extends Plane {
         isHidden = false;
     }
 
-    public void setOnDistanceMeasureListener(OnDistanceMeasureListener listener) {
+    public void setOnFloatObjectFinderListener(OnFloatObjectFinderListener listener) {
         this.listener = listener;
+    }
+
+    @Override
+    public void onObjectPicked(@NonNull Object3D object) {
+        this.foundObject = object;
+        setColor(FIND_COLOR);
+        listener.onObjectFound(object);
+    }
+
+    @Override
+    public void onNoObjectPicked() {
+        foundObject = null;
+        setColor(DEFAULT_COLOR);
+        listener.onObjectNoFound();
     }
 
     @Override
@@ -73,7 +78,7 @@ public class FloatObjectFinder extends Plane {
                 super.render(camera, vpMatrix, projMatrix, vMatrix, sceneMaterial);
             }
             if (foundObject != null && listener != null) {
-                listener.onMeasure(distanceToFoundObject);
+                listener.onMeasureDistance(distanceToFoundObject);
             }
         }
     }
@@ -195,9 +200,13 @@ public class FloatObjectFinder extends Plane {
         return isCalculated;
     }
 
-    public interface OnDistanceMeasureListener {
+    public interface OnFloatObjectFinderListener {
 
-        void onMeasure(double distance);
+        void onObjectFound(Object3D foundObject);
+
+        void onObjectNoFound();
+
+        void onMeasureDistance(double distance);
 
     }
 }

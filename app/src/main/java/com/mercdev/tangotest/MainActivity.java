@@ -45,14 +45,13 @@ import org.rajawali3d.Object3D;
 import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.scene.ASceneFrameCallback;
-import org.rajawali3d.util.OnObjectPickedListener;
 import org.rajawali3d.view.SurfaceView;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MainActivity extends Activity implements OnObjectPickedListener, FloatObjectFinder.OnDistanceMeasureListener {
+public class MainActivity extends Activity implements FloatObjectFinder.OnFloatObjectFinderListener {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int INVALID_TEXTURE_ID = 0;
 
@@ -490,7 +489,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener, Fl
         // RGB frame is rendered.
         // (@see https://github.com/Rajawali/Rajawali/wiki/Scene-Frame-Callbacks)
 
-        renderer = new AugmentedRealityRenderer(this, this, this, transformFloorMatrix4);
+        renderer = new AugmentedRealityRenderer(this, this, transformFloorMatrix4);
         renderer.getCurrentScene().registerFrameCallback(new ASceneFrameCallback() {
             @Override
             public void onPreFrame(long sceneTime, double deltaTime) {
@@ -706,24 +705,20 @@ public class MainActivity extends Activity implements OnObjectPickedListener, Fl
     }
 
     @Override
-    public void onObjectPicked(@NonNull Object3D object) {
+    public void onObjectFound(Object3D foundObject) {
         if (modifyFixture.getVisibility() != View.VISIBLE && deleteFixture.getVisibility() != View.VISIBLE) {
-            if (object != null) {
-                Fixture fixture = FixturesRepository.getInstance().getFixture(object.getName());
-                if (fixture != null && (previousObject == null || !previousObject.getName().equals(object.getName()))) {
-                    previousObject = object;
+            if (foundObject != null) {
+                Fixture fixture = FixturesRepository.getInstance().getFixture(foundObject.getName());
+                if (fixture != null && (previousObject == null || !previousObject.getName().equals(foundObject.getName()))) {
+                    previousObject = foundObject;
                     showFixtureInformation(fixture);
                 }
-
-                renderer.getObjectFinder().onFind(object);
-            } else {
-                onNoObjectPicked();
             }
         }
     }
 
     @Override
-    public void onNoObjectPicked() {
+    public void onObjectNoFound() {
         if (modifyFixture.getVisibility() != View.VISIBLE
                 && deleteFixture.getVisibility() != View.VISIBLE
                 && previousObject != null) {
@@ -740,12 +735,10 @@ public class MainActivity extends Activity implements OnObjectPickedListener, Fl
                 }
             });
         }
-
-        renderer.getObjectFinder().onLose();
     }
 
     @Override
-    public void onMeasure(final double distance) {
+    public void onMeasureDistance(final double distance) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

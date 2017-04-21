@@ -35,7 +35,6 @@ import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.renderer.Renderer;
 import org.rajawali3d.util.ObjectColorPicker;
-import org.rajawali3d.util.OnObjectPickedListener;
 
 import java.util.ArrayList;
 
@@ -66,14 +65,12 @@ public class AugmentedRealityRenderer extends Renderer {
 
     private ObjectColorPicker picker;
     private FloatObjectFinder objectFinder;
-    private FloatObjectFinder.OnDistanceMeasureListener onDistanceMeasureListener;
+    private FloatObjectFinder.OnFloatObjectFinderListener onFloatObjectFinderListener;
 
-    public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener, FloatObjectFinder.OnDistanceMeasureListener onDistanceMeasureListener, Matrix4 transformFloorMatrix4) {
+    public AugmentedRealityRenderer(Context context, FloatObjectFinder.OnFloatObjectFinderListener onFloatObjectFinderListener, Matrix4 transformFloorMatrix4) {
         super(context);
         this.transformFloorMatrix4 = transformFloorMatrix4;
-        picker = new ObjectColorPicker(this);
-        picker.setOnObjectPickedListener(onObjectPickedListener);
-        this.onDistanceMeasureListener = onDistanceMeasureListener;
+        this.onFloatObjectFinderListener = onFloatObjectFinderListener;
     }
 
     @Override
@@ -101,8 +98,11 @@ public class AugmentedRealityRenderer extends Renderer {
 
         objectFinder = new FloatObjectFinder(0.07f, 0.07f);
         objectFinder.setDepthPosition(4.0f);
-        objectFinder.setOnDistanceMeasureListener(onDistanceMeasureListener);
+        objectFinder.setOnFloatObjectFinderListener(onFloatObjectFinderListener);
         getCurrentScene().addChild(objectFinder);
+
+        picker = new ObjectColorPicker(this);
+        picker.setOnObjectPickedListener(objectFinder);
 
         // Add a directional light in an arbitrary direction.
         DirectionalLight light = new DirectionalLight(1, 0.2, -1);
