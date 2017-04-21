@@ -217,39 +217,4 @@ public class FixtureRectangularPrism extends Object3D {
     public ArrayList<Facet> getFacets() {
         return facets;
     }
-
-    public double getDistanceFromPoint(Vector3 position) {
-        double x1 = getX() - getWidth() * 0.5f;
-        double y1 = getY() + getHeight() * 0.5f;
-        double z1 = getZ() - getDepth() * 0.5f;
-
-        double x2 = getX() + getWidth() * 0.5f;
-        double y2 = getY() - getHeight() * 0.5f;
-        double z2 = getZ() + getDepth() * 0.5f;
-
-        double x = position.x;
-        double y = position.y;
-        double z = position.z;
-
-        if (Double.compare(x, x1) < 0) {
-            x = x1;
-        } else if (Double.compare(x, x2) > 0) {
-            x = x2;
-        }
-
-        if (Double.compare(y, y1) > 0) {
-            y = y1;
-        } else if (Double.compare(y, y2) < 0) {
-            y = y2;
-        }
-
-        if (Double.compare(z, z1) < 0) {
-            z = z1;
-        } else if (Double.compare(z, z2) > 0) {
-            z = z2;
-        }
-
-        double distance = Math.sqrt(Math.pow(x - position.x, 2) + Math.pow(y - position.y, 2) + Math.pow(z - position.z, 2));
-        return distance;
-    }
 }

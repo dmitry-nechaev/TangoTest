@@ -66,12 +66,14 @@ public class AugmentedRealityRenderer extends Renderer {
 
     private ObjectColorPicker picker;
     private FloatObjectFinder objectFinder;
+    private FloatObjectFinder.OnDistanceMeasureListener onDistanceMeasureListener;
 
-    public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener, Matrix4 transformFloorMatrix4) {
+    public AugmentedRealityRenderer(Context context, OnObjectPickedListener onObjectPickedListener, FloatObjectFinder.OnDistanceMeasureListener onDistanceMeasureListener, Matrix4 transformFloorMatrix4) {
         super(context);
         this.transformFloorMatrix4 = transformFloorMatrix4;
         picker = new ObjectColorPicker(this);
         picker.setOnObjectPickedListener(onObjectPickedListener);
+        this.onDistanceMeasureListener = onDistanceMeasureListener;
     }
 
     @Override
@@ -97,6 +99,11 @@ public class AugmentedRealityRenderer extends Renderer {
         }
         getCurrentScene().addChildAt(backgroundQuad, 0);
 
+        objectFinder = new FloatObjectFinder(0.07f, 0.07f);
+        objectFinder.setDepthPosition(4.0f);
+        objectFinder.setOnDistanceMeasureListener(onDistanceMeasureListener);
+        getCurrentScene().addChild(objectFinder);
+
         // Add a directional light in an arbitrary direction.
         DirectionalLight light = new DirectionalLight(1, 0.2, -1);
         light.setColor(1, 1, 1);
@@ -106,10 +113,6 @@ public class AugmentedRealityRenderer extends Renderer {
 
         Vector3 floorPlaneVector = transformFloorMatrix4.getTranslation();
         double cameraHeight = floorPlaneVector.y;
-
-        objectFinder = new FloatObjectFinder(0.07f, 0.07f);
-        objectFinder.setDepthPosition(4.0f);
-        getCurrentScene().addChild(objectFinder);
 
         Material material = new Material();
         material.enableLighting(true);

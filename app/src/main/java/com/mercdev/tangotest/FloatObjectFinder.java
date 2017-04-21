@@ -26,6 +26,8 @@ public class FloatObjectFinder extends Plane {
     private Object3D foundObject;
     private float depthPosition = 1.0f;
     private boolean isHidden = false;
+    private double distanceToFoundObject = 0.0d;
+    private OnDistanceMeasureListener listener;
 
     public FloatObjectFinder(float width, float height) {
         super(width, height, 1, 1);
@@ -55,6 +57,10 @@ public class FloatObjectFinder extends Plane {
         isHidden = false;
     }
 
+    public void setOnDistanceMeasureListener(OnDistanceMeasureListener listener) {
+        this.listener = listener;
+    }
+
     @Override
     public void renderColorPicking(Camera camera, Material pickingMaterial) {
 
@@ -63,8 +69,12 @@ public class FloatObjectFinder extends Plane {
     @Override
     public void render(Camera camera, Matrix4 vpMatrix, Matrix4 projMatrix, Matrix4 vMatrix, Material sceneMaterial) {
         if (!isHidden) {
-            calculatePositionAndOrientation(camera);
-            super.render(camera, vpMatrix, projMatrix, vMatrix, sceneMaterial);
+            if (calculatePositionAndOrientation(camera)) {
+                super.render(camera, vpMatrix, projMatrix, vMatrix, sceneMaterial);
+            }
+            if (foundObject != null && listener != null) {
+                listener.onMeasure(distanceToFoundObject);
+            }
         }
     }
 
@@ -79,7 +89,10 @@ public class FloatObjectFinder extends Plane {
         setBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA);
     }
 
-    private void calculatePositionAndOrientation(Camera camera) {
+    private boolean calculatePositionAndOrientation(Camera camera) {
+        distanceToFoundObject = 0.0d;
+        boolean isCalculated = false;
+
         if (foundObject == null) {
             // Calculate transform matrix for the plane in front of the camera
             double[] normalPlane = {0.0f, 0.0f, 1.0f};
@@ -93,17 +106,13 @@ public class FloatObjectFinder extends Plane {
             setPosition(newPosition);
             Quaternion newOrientation = new Quaternion().fromMatrix(transformMatrix4);
             setOrientation(newOrientation);
+
+            isCalculated = true;
         } else {
             Quaternion cameraOrientation = camera.getOrientation();
             cameraOrientation.conjugate();
             double[] cameraOrientationMatrix = new double[16];
             cameraOrientation.toRotationMatrix(cameraOrientationMatrix);
-
-            double[] modelViewMatrix = new double[16];
-            foundObject.getModelViewMatrix().toArray(modelViewMatrix);
-
-            double[] modelMatrix = new double[16];
-            foundObject.getModelMatrix().toArray(modelMatrix);
 
             ArrayList<FixtureRectangularPrism.Facet> objectFacets = ((FixtureRectangularPrism) foundObject).getFacets();
             for (FixtureRectangularPrism.Facet facet : objectFacets) {
@@ -111,17 +120,17 @@ public class FloatObjectFinder extends Plane {
                 double[] normal = {facet.getNormal().x, facet.getNormal().y, facet.getNormal().z, 1};
                 double[] tNormal = new double[4];
                 org.rajawali3d.math.Matrix.multiplyMV(tNormal, 0, cameraOrientationMatrix, 0, normal, 0);
-                if (tNormal[3] > 0) {
+                if (tNormal[2] > 0) {
                     // transform coordinates of object vertices to camera coordinate system
+                    double[] modelViewMatrix = new double[16];
+                    foundObject.getModelViewMatrix().toArray(modelViewMatrix);
+
                     Vector3[] tVertices = new Vector3[4];
                     for (int i = 0; i < 4; i++) {
                         double[] vertex = {facet.getVertices()[i].x, facet.getVertices()[i].y, facet.getVertices()[i].z, 1};
                         double[] tVertex = new double[4];
                         org.rajawali3d.math.Matrix.multiplyMV(tVertex, 0, modelViewMatrix, 0, vertex, 0);
                         tVertices[i] = new Vector3(tVertex[0], tVertex[1], tVertex[2]);
-
-                        double[] mVertex = new double[4];
-                        org.rajawali3d.math.Matrix.multiplyMV(mVertex, 0, modelMatrix, 0, vertex, 0);
                     }
 
                     // identify intersection of Oz with facet
@@ -143,25 +152,52 @@ public class FloatObjectFinder extends Plane {
                         double d = -(tVertices[0].x * (tVertices[1].y * tVertices[2].z - tVertices[2].y * tVertices[1].z) + tVertices[1].x * (tVertices[2].y * tVertices[0].z - tVertices[0].y * tVertices[2].z) +
                                    tVertices[2].x * (tVertices[0].y * tVertices[1].z - tVertices[1].y * tVertices[0].z));
 
-                        // calculate intersection point of Oz with plane
-                        double[] tIntersectionPoint = {0, 0, -d / c + 0.1f , 1};
+                        // calculate distance to found plane considering position of objects in perspective
+                        double[] projectionMatrix = new double[16];
+                        camera.getProjectionMatrix().toArray(projectionMatrix);
 
-                        double[] normalPlane = {a, b, c};
+                        double[] distanceViewVector = {0, 0, -d / c, 1};
+                        double[] distanceProjectionVector = new double[4];
+                        org.rajawali3d.math.Matrix.multiplyMV(distanceProjectionVector, 0, projectionMatrix, 0, distanceViewVector, 0);
 
-                        float[] cameraModelMatrix = new float[16];
-                        camera.getModelMatrix().toFloatArray(cameraModelMatrix);
+                        double cameraNear = camera.getProjectionMatrix().getTranslation().z / (camera.getProjectionMatrix().getTranslation().z - 2.0);
+                        double distanceToPlane = distanceProjectionVector[2] + cameraNear;
 
-                        Matrix4 transformMatrix4 =  PlaneDefinitionHelper.getPlaneTransformMatrix4(tIntersectionPoint, normalPlane, cameraModelMatrix);
-                        setScale(tIntersectionPoint[2]);
-                        Vector3 translation = transformMatrix4.getTranslation();
-                        setPosition(translation);
-                        Quaternion orientationQuaternion = new Quaternion().fromMatrix(transformMatrix4);
-                        setOrientation(orientationQuaternion);
-                        setRotZ(0);
-                        break;
+                        // continue the calculations if found plane is located in front of camera
+                        if (distanceToPlane > 0) {
+                            // calculate intersection point of Oz with plane
+                            // need to reduce distance to plane, that ObjectFinder floats on plane and doesn't flicker
+                            double[] tIntersectionPoint = {0, 0, -d / c * 0.95, 1};
+
+                            double[] normalPlane = {a, b, c};
+
+                            float[] cameraModelMatrix = new float[16];
+                            camera.getModelMatrix().toFloatArray(cameraModelMatrix);
+
+                            Matrix4 transformMatrix4 = PlaneDefinitionHelper.getPlaneTransformMatrix4(tIntersectionPoint, normalPlane, cameraModelMatrix);
+                            setScale(tIntersectionPoint[2]);
+                            Vector3 translation = transformMatrix4.getTranslation();
+                            setPosition(translation);
+                            Quaternion orientationQuaternion = new Quaternion().fromMatrix(transformMatrix4);
+                            setOrientation(orientationQuaternion);
+                            setRotZ(0);
+
+                            distanceToFoundObject = distanceToPlane;
+
+                            isCalculated = true;
+                            break;
+                        }
                     }
                 }
             }
         }
+
+        return isCalculated;
+    }
+
+    public interface OnDistanceMeasureListener {
+
+        void onMeasure(double distance);
+
     }
 }

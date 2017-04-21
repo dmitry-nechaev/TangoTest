@@ -44,7 +44,6 @@ import com.projecttango.tangosupport.TangoSupport;
 import org.rajawali3d.Object3D;
 import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.math.Quaternion;
-import org.rajawali3d.math.vector.Vector3;
 import org.rajawali3d.scene.ASceneFrameCallback;
 import org.rajawali3d.util.OnObjectPickedListener;
 import org.rajawali3d.view.SurfaceView;
@@ -53,7 +52,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MainActivity extends Activity implements OnObjectPickedListener {
+public class MainActivity extends Activity implements OnObjectPickedListener, FloatObjectFinder.OnDistanceMeasureListener {
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int INVALID_TEXTURE_ID = 0;
 
@@ -491,7 +490,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         // RGB frame is rendered.
         // (@see https://github.com/Rajawali/Rajawali/wiki/Scene-Frame-Callbacks)
 
-        renderer = new AugmentedRealityRenderer(this, this, transformFloorMatrix4);
+        renderer = new AugmentedRealityRenderer(this, this, this, transformFloorMatrix4);
         renderer.getCurrentScene().registerFrameCallback(new ASceneFrameCallback() {
             @Override
             public void onPreFrame(long sceneTime, double deltaTime) {
@@ -717,7 +716,6 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                 }
 
                 renderer.getObjectFinder().onFind(object);
-                setFixtureDistance();
             } else {
                 onNoObjectPicked();
             }
@@ -744,6 +742,17 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         }
 
         renderer.getObjectFinder().onLose();
+    }
+
+    @Override
+    public void onMeasure(final double distance) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView) targetedFixture.findViewById(R.id.fixture_distance))
+                        .setText(String.format(getResources().getString(R.string.fixture_dialog_targeted_distance), distance));
+            }
+        });
     }
 
     private void showCoverFrame(int coverText) {
@@ -1147,20 +1156,6 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         previousObject.setScaleX(scaleX);
         previousObject.setScaleZ(scaleZ);
         Log.d("scale", "rotation angle = " + fixture.getRotationAngle() +  ", mcos = " + mcos + ", msin = " + msin);
-    }
-
-    private void setFixtureDistance() {
-        if (previousObject != null) {
-            Vector3 cameraPosition = renderer.getCameraPosition();
-            final double distance = ((FixtureRectangularPrism) previousObject).getDistanceFromPoint(cameraPosition);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    ((TextView) targetedFixture.findViewById(R.id.fixture_distance))
-                            .setText(String.format(getResources().getString(R.string.fixture_dialog_targeted_distance), distance));
-                }
-            });
-        }
     }
 
     private void cancelFixtureModifications() {
