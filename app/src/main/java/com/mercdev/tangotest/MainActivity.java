@@ -16,14 +16,13 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -51,6 +50,7 @@ import org.rajawali3d.scene.ASceneFrameCallback;
 import org.rajawali3d.util.OnObjectPickedListener;
 import org.rajawali3d.view.SurfaceView;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -68,7 +68,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private static final String ADF_LOAD_SAVE_PERMISSION = Tango.PERMISSIONTYPE_ADF_LOAD_SAVE;
     private static final int ADF_LOAD_SAVE_PERMISSION_CODE = 100;
 
-    private static final PointF FLOOR_DEFINITION_POINT = new PointF(0.5f, 0.75f);
+    private static final PointF FLOOR_DEFINITION_POINT = new PointF(0.5f, 0.5f);
 
     private SurfaceView mSurfaceView;
     private FrameLayout mapContainer;
@@ -77,13 +77,14 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     private Minimap minimap;
     private View nothingTargeted, targetedFixture, deleteFixture, modifyFixture;
     private View marker;
+    private CheckBox holdCheckbox;
 
     private AugmentedRealityRenderer renderer;
     private Tango tango;
     private TangoConfig config;
     private boolean isConnected = false;
     private double cameraPoseTimestamp = 0;
-    private Object3D previousObject;
+    private FixtureRectangularPrism previousObject;
     private TangoPointCloudManager tangoPointCloudManager;
 
     // Texture rendering related fields.
@@ -94,12 +95,16 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
 
     private boolean isLocalized = false;
     private boolean isCreateSurfaceAndScene = false;
+    private boolean isHoldChecked = false;
 
     private int displayRotation;
     private ArrayList<String> createdAdfFileUuid = new ArrayList<>();
 
 
-    private double startModificationCameraX, startModificationCameraZ, startModificationFixtureX, startModificationFixtureZ, startModificationRotationAngle, startModificationCameraAngle;
+    private double startModificationCameraX, startModificationCameraZ, startModificationFixtureX, startModificationFixtureZ,
+            startHoldingX, startHoldingZ, startHoldingRotationAngle, startHoldingCameraAngle,
+            startModificationRotationAngle, startModificationCameraAngle,
+            startModificationFixtureScaleX, startModificationFixtureScaleY, startModificationFixtureScaleZ;
     private Fixture startModificationFixture;
 
     /**
@@ -198,6 +203,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         targetedFixture = findViewById(R.id.targeted_fixture_container);
         deleteFixture = findViewById(R.id.delete_fixture_container);
         modifyFixture = findViewById(R.id.modify_fixture_container);
+        holdCheckbox = (CheckBox) findViewById(R.id.modify_fixture_hold);
         marker = findViewById(R.id.marker);
 
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
@@ -416,8 +422,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                     while (true) {
                                         TangoPointCloudData cloudData = tangoPointCloudManager.getLatestPointCloud();
                                         if (cloudDataTimestamp < cloudData.timestamp) {
-                                            final Matrix4 transformFloorMatrix4 = FloorPlaneDefinitionHelper.getTransformFloorMatrix4(FLOOR_DEFINITION_POINT.x, FLOOR_DEFINITION_POINT.y, cloudData,
-                                                    rgbTimestampGlThread, displayRotation);
+                                            final Matrix4 transformFloorMatrix4 = FloorPlaneDefinitionHelper.getTransformFloorMatrix4(FLOOR_DEFINITION_POINT.x, FLOOR_DEFINITION_POINT.y,
+                                                    cloudData, rgbTimestampGlThread);
 
                                             // TODO need add check defined plane is floor
                                             if (transformFloorMatrix4 != null) {
@@ -581,22 +587,25 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 // Update the camera pose from the renderer
                                 renderer.updateRenderCameraPose(lastFramePose);
                                 cameraPoseTimestamp = lastFramePose.timestamp;
-                                if (modifyFixture.getVisibility() == View.VISIBLE && previousObject != null) {
-                                    double dx = renderer.getCameraPosition().x - startModificationCameraX;
-                                    double dz = renderer.getCameraPosition().z - startModificationCameraZ;
-                                    double x = startModificationFixtureX + dx;
-                                    double z = startModificationFixtureZ + dz;
-                                    previousObject.setPosition(x, previousObject.getY(), z);
-                                    FixturesRepository.getInstance().getFixture(startModificationFixture.getName())
-                                            .setPosition(new Point((int) (startModificationFixture.getPosition().x + dx * 100f),
-                                                    (int) (startModificationFixture.getPosition().y + dz * 100f)));
-
+                                if (modifyFixture.getVisibility() == View.VISIBLE && previousObject != null && holdCheckbox.isChecked() && isHoldChecked) {
                                     float[] rotation = lastFramePose.getRotationAsFloats();
                                     Quaternion q = new Quaternion(rotation[3], rotation[0], rotation[1], rotation[2]);
-                                    double rotationAngle = Math.toDegrees(-q.getRotationY()) - startModificationCameraAngle;
-                                    previousObject.setRotY(startModificationRotationAngle + rotationAngle);
-                                    FixturesRepository.getInstance().getFixture(startModificationFixture.getName())
-                                            .setRotationAngle(startModificationFixture.getRotationAngle() + rotationAngle);
+                                    double rotationAngle = Math.toDegrees(-q.getRotationY()) - startHoldingCameraAngle;
+                                    previousObject.setRotY(startHoldingRotationAngle + rotationAngle);
+                                    Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
+                                    fixture.setRotationAngle(startHoldingRotationAngle + rotationAngle);
+
+                                    double angle = Math.toRadians(rotationAngle);
+
+                                    double x2 = startHoldingX * Math.cos(angle) - startHoldingZ * Math.sin(angle) + renderer.getCameraPosition().x;
+                                    double z2 = startHoldingX * Math.sin(angle) + startHoldingZ * Math.cos(angle) + renderer.getCameraPosition().z;
+
+                                    previousObject.setX(x2);
+                                    previousObject.setZ(z2);
+
+                                    fixture.setPosition(new Point((int) (x2 * 100f - fixture.getWidth() * 0.5f),
+                                            (int) (z2 * 100f - fixture.getDepth() * 0.5f)));
+                                    scaleObject(fixture);
 
                                     minimap.processFixtures();
                                 }
@@ -708,10 +717,13 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
         ArrayList<Fixture> fixtures = new ArrayList<>();
 
         int fixtureColor = getResources().getColor(R.color.object_color);
-        fixtures.add(new Fixture("Fixture1", new Point(345, -620), 280, 25, 685, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture2", new Point(-860, -620), 280, 25, 685, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture1", new Point(345, -845), 280, 25, 910, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture2", new Point(-860, -845), 280, 25, 910, 0f, fixtureColor));
         fixtures.add(new Fixture("Fixture3", new Point(-835, 40), 280, 1180, 25, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture4", new Point(-835, -620), 280, 1180, 25, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture4", new Point(-835, -845), 280, 1180, 25, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture5", new Point(-257, -290), 137, 86, 210, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture6", new Point(-457, -390), 280, 100, 200, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture7", new Point(-657, -490), 137, 210, 86, 0f, fixtureColor));
 
         FixturesRepository.getInstance().setFixtures(fixtures);
     }
@@ -744,10 +756,10 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
     @Override
     public void onObjectPicked(@NonNull Object3D object) {
         if (modifyFixture.getVisibility() != View.VISIBLE && deleteFixture.getVisibility() != View.VISIBLE) {
-            if (object != null) {
+            if (object != null && object instanceof FixtureRectangularPrism) {
                 Fixture fixture = FixturesRepository.getInstance().getFixture(object.getName());
                 if (fixture != null && (previousObject == null || !previousObject.getName().equals(object.getName()))) {
-                    previousObject = object;
+                    previousObject = (FixtureRectangularPrism) object;
                     showFixtureInformation(fixture);
                     changeMarkerColor(Color.GREEN);
                 }
@@ -864,6 +876,7 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                                 FixturesRepository.getInstance().removeFixture(previousObject.getName());
                                 renderer.removeObject(previousObject.getName());
                                 minimap.postInvalidate();
+                                showNothingTargeted();
                             }
                         }
                     });
@@ -886,87 +899,252 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             startModificationFixtureZ = previousObject.getZ();
             startModificationRotationAngle = Math.toDegrees(previousObject.getRotY());
             startModificationCameraAngle = Math.toDegrees(renderer.getCameraAngle());
+            startModificationFixtureScaleX = previousObject.getScaleX();
+            startModificationFixtureScaleY = previousObject.getScaleY();
+            startModificationFixtureScaleZ = previousObject.getScaleZ();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     ((TextView) modifyFixture.findViewById(R.id.modify_fixture_name))
                             .setText(String.format(getResources().getString(R.string.fixture_dialog_modify_fixture), fixture.getName()));
 
-                    EditText fixtureHeight = (EditText) modifyFixture.findViewById(R.id.modify_fixture_height);
-                    fixtureHeight.setText(String.valueOf(fixture.getHeight() / 100f));
-                    fixtureHeight.addTextChangedListener(new TextWatcher() {
+                    isHoldChecked = false;
+                    holdCheckbox.setChecked(isHoldChecked);
+                    holdCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
-                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (isChecked) {
+                                startHoldingX = previousObject.getX() - renderer.getCameraPosition().x;
+                                startHoldingZ = previousObject.getZ() - renderer.getCameraPosition().z;
+                                startHoldingRotationAngle = Math.toDegrees(previousObject.getRotY());
+                                startHoldingCameraAngle = Math.toDegrees(renderer.getCameraAngle());
+                            }
+                            isHoldChecked = isChecked;
                         }
+                    });
 
+                    final TextView fixtureHeight = (TextView) modifyFixture.findViewById(R.id.modify_fixture_height);
+                    fixtureHeight.setText(new DecimalFormat("##.##").format(fixture.getHeight() / 100f));
+                    modifyFixture.findViewById(R.id.modify_fixture_height_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                            if (!TextUtils.isEmpty(s)) {
-                                Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
-                                double newHeight = Double.valueOf(s.toString()).doubleValue();
-                                ((FixtureRectangularPrism) previousObject).changeHeight((float) newHeight);
-                                fixture.setHeight((int) (newHeight * 100f));
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                int value = fixture.getHeight() - 1;
+                                if (value > 0) {
+                                    fixtureHeight.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                    previousObject.setScaleY(value * 0.01f / previousObject.getHeight());
+                                    previousObject.moveUp(-0.005);
+                                    fixture.setHeight(value);
+                                }
+                            }
+                        }
+                    });
+                    modifyFixture.findViewById(R.id.modify_fixture_height_plus).setOnTouchListener(new OnTouchContinuousListener() {
+                        @Override
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                int value = fixture.getHeight() + 1;
+                                fixtureHeight.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                previousObject.setScaleY(value * 0.01f / previousObject.getHeight());
+                                previousObject.moveUp(0.005);
+                                fixture.setHeight(value);
+                            }
+                        }
+                    });
+
+
+                    modifyFixture.findViewById(R.id.modify_fixture_x_minus).setOnTouchListener(new OnTouchContinuousListener() {
+                        @Override
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                previousObject.setX(previousObject.getX() - 0.01f);
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                storedFixture.setX(storedFixture.getPosition().x - 1);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
                             }
                         }
-
-                        @Override
-                        public void afterTextChanged(Editable s) {
-
-                        }
                     });
-
-                    EditText fixtureWidth = (EditText) modifyFixture.findViewById(R.id.modify_fixture_width);
-                    fixtureWidth.setText(String.valueOf(fixture.getWidth() / 100f));
-                    fixtureWidth.addTextChangedListener(new TextWatcher() {
+                    modifyFixture.findViewById(R.id.modify_fixture_x_plus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                        }
-
-                        @Override
-                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                            if (!TextUtils.isEmpty(s)) {
-                                Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
-                                double newWidth = Double.valueOf(s.toString()).doubleValue();
-                                ((FixtureRectangularPrism) previousObject).changeWidth((float) newWidth);
-                                fixture.setWidth((int) (newWidth * 100f));
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                previousObject.setX(previousObject.getX() + 0.01f);
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                storedFixture.setX(storedFixture.getPosition().x + 1);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
                             }
                         }
+                    });
 
+                    final TextView fixtureWidth = (TextView) modifyFixture.findViewById(R.id.modify_fixture_width);
+                    fixtureWidth.setText(new DecimalFormat("##.##").format(fixture.getWidth() / 100f));
+                    modifyFixture.findViewById(R.id.modify_fixture_width_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void afterTextChanged(Editable s) {
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                int value = fixture.getWidth() - 1;
+                                if (value > 0) {
+                                    fixture.setWidth(value);
+                                    fixtureWidth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                    scaleObject(fixture);
+                                }
 
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+                    });
+                    modifyFixture.findViewById(R.id.modify_fixture_width_plus).setOnTouchListener(new OnTouchContinuousListener() {
+                        @Override
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                int value = fixture.getWidth() + 1;
+                                fixture.setWidth(value);
+                                fixtureWidth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                scaleObject(fixture);
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
                         }
                     });
 
-                    EditText fixtureDepth = (EditText) modifyFixture.findViewById(R.id.modify_fixture_depth);
-                    fixtureDepth.setText(String.valueOf(fixture.getDepth() / 100f));
-                    fixtureDepth.addTextChangedListener(new TextWatcher() {
-                        @Override
-                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-                        }
-
+                    modifyFixture.findViewById(R.id.modify_fixture_y_minus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                            if (!TextUtils.isEmpty(s)) {
-                                Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
-                                double newDepth = Double.valueOf(s.toString()).doubleValue();
-                                ((FixtureRectangularPrism) previousObject).changeDepth((float) newDepth);
-                                fixture.setHeight((int) (newDepth * 100f));
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                previousObject.setZ(previousObject.getZ() - 0.01f);
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                storedFixture.setY(storedFixture.getPosition().y - 1);
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
                             }
                         }
-
+                    });
+                    modifyFixture.findViewById(R.id.modify_fixture_y_plus).setOnTouchListener(new OnTouchContinuousListener() {
                         @Override
-                        public void afterTextChanged(Editable s) {
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                previousObject.setZ(previousObject.getZ() + 0.01f);
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                storedFixture.setY(storedFixture.getPosition().y + 1);
 
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+                    });
+
+                    final TextView fixtureDepth = (TextView) modifyFixture.findViewById(R.id.modify_fixture_depth);
+                    fixtureDepth.setText(new DecimalFormat("##.##").format(fixture.getDepth() / 100f));
+                    modifyFixture.findViewById(R.id.modify_fixture_depth_minus).setOnTouchListener(new OnTouchContinuousListener() {
+                        @Override
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                int value = fixture.getDepth() - 1;
+                                if (value > 0) {
+                                    fixture.setDepth(value);
+                                    fixtureDepth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                    scaleObject(fixture);
+
+                                    minimap.processFixtures();
+                                    minimap.postInvalidate();
+                                }
+                            }
+                        }
+                    });
+                    modifyFixture.findViewById(R.id.modify_fixture_depth_plus).setOnTouchListener(new OnTouchContinuousListener() {
+                        @Override
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                int value = fixture.getDepth() + 1;
+                                fixture.setDepth(value);
+                                fixtureDepth.setText(new DecimalFormat("##.##").format(value * 0.01f));
+                                scaleObject(fixture);
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+                    });
+
+
+                    modifyFixture.findViewById(R.id.modify_fixture_angle_minus).setOnTouchListener(new OnTouchContinuousListener() {
+                        @Override
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                double value = storedFixture.getRotationAngle() - 1;
+                                if (Double.compare(value, 0) < 0) {
+                                    value = 360 + value;
+                                }
+                                previousObject.setRotY(value);
+                                storedFixture.setRotationAngle(value);
+                                scaleObject(storedFixture);
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
+                        }
+                    });
+                    modifyFixture.findViewById(R.id.modify_fixture_angle_plus).setOnTouchListener(new OnTouchContinuousListener() {
+                        @Override
+                        public void onTouchRepeat(View view) {
+                            synchronized (this) {
+                                if (isHoldChecked && holdCheckbox.isChecked()) {
+                                    holdCheckbox.setChecked(false);
+                                }
+                                Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
+                                double value = storedFixture.getRotationAngle() + 1;
+                                if (Double.compare(value, 360) >= 0) {
+                                    value = value - 360;
+                                }
+                                previousObject.setRotY(value);
+                                storedFixture.setRotationAngle(value);
+                                scaleObject(storedFixture);
+
+                                minimap.processFixtures();
+                                minimap.postInvalidate();
+                            }
                         }
                     });
 
@@ -980,8 +1158,8 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     modifyFixture.findViewById(R.id.modify_fixture_save).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            //TODO apply modifications
                             showFixtureInformation(fixture);
+                            previousObject.setColor(fixture.getColor());
                         }
                     });
 
@@ -991,13 +1169,33 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
                     modifyFixture.setVisibility(View.VISIBLE);
                 }
             });
+
+            previousObject.setColor(getResources().getColor(R.color.object_selected));
         }
+    }
+
+    private void scaleObject(Fixture fixture) {
+        double cos = Math.abs(Math.cos(Math.toRadians(fixture.getRotationAngle())));
+        double sin = Math.abs(Math.sin(Math.toRadians(fixture.getRotationAngle())));
+
+        double currentX = fixture.getWidth() * cos + fixture.getDepth() * sin;
+        double currentZ = fixture.getWidth() * sin + fixture.getDepth() * cos;
+
+        double previousX = (previousObject.getWidth() * cos + previousObject.getDepth() * sin) * 100f;
+        double previousZ = (previousObject.getWidth() * sin + previousObject.getDepth() * cos) * 100f;
+
+        double scaleX = currentX / previousX;
+        double scaleZ = currentZ / previousZ;
+
+        previousObject.setScaleX(scaleX);
+        previousObject.setScaleZ(scaleZ);
+        Log.d("scale", "rotation angle = " + fixture.getRotationAngle() + ", cos = " + cos + ", sin = " + sin + ",\n currentX = " + currentX + ", currentZ = " + currentZ + ",\n previousX = " + previousX + ", previousZ = " + previousZ + ",\n scaleX = " + scaleX + ", scaleZ = " + scaleZ);
     }
 
     private void setFixtureDistance() {
         if (previousObject != null) {
             Vector3 cameraPosition = renderer.getCameraPosition();
-            final double distance = Math.sqrt(Math.pow(previousObject.getX() - cameraPosition.x, 2) + Math.pow(previousObject.getY() - cameraPosition.y, 2));
+            final double distance = previousObject.getDistanceFromPoint(cameraPosition);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -1013,8 +1211,12 @@ public class MainActivity extends Activity implements OnObjectPickedListener {
             @Override
             public void run() {
                 FixturesRepository.getInstance().updateFixture(startModificationFixture);
-                previousObject.setPosition(startModificationFixtureX, previousObject.getY(), startModificationFixtureZ);
+                previousObject.setX(startModificationFixtureX);
+                previousObject.setZ(startModificationFixtureZ);
                 previousObject.setRotY(startModificationRotationAngle);
+                previousObject.setScale(startModificationFixtureScaleX, startModificationFixtureScaleY, startModificationFixtureScaleZ);
+                previousObject.setColor(startModificationFixture.getColor());
+
                 minimap.processFixtures();
                 minimap.postInvalidate();
             }
