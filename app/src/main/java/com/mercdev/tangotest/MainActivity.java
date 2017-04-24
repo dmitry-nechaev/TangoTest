@@ -75,7 +75,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
     private TangoConfig config;
     private boolean isConnected = false;
     private double cameraPoseTimestamp = 0;
-    private Object3D previousObject;
+    private FixtureRectangularPrism previousObject;
     private TangoPointCloudManager tangoPointCloudManager;
 
     // Texture rendering related fields.
@@ -193,6 +193,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
         deleteFixture = findViewById(R.id.delete_fixture_container);
         modifyFixture = findViewById(R.id.modify_fixture_container);
         holdCheckbox = (CheckBox) findViewById(R.id.modify_fixture_hold);
+        marker = findViewById(R.id.marker);
 
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
         minimap = (Minimap) findViewById(R.id.minimap);
@@ -686,7 +687,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
         fixtures.add(new Fixture("Fixture3", new Point(-835, 40), 280, 1180, 25, 0f, fixtureColor));
         fixtures.add(new Fixture("Fixture4", new Point(-835, -845), 280, 1180, 25, 0f, fixtureColor));
         fixtures.add(new Fixture("Fixture5", new Point(-257, -290), 137, 86, 210, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture6", new Point(-457, -390), 137, 86, 210, 0f, fixtureColor));
+        fixtures.add(new Fixture("Fixture6", new Point(-457, -390), 280, 100, 200, 0f, fixtureColor));
         fixtures.add(new Fixture("Fixture7", new Point(-657, -490), 137, 210, 86, 0f, fixtureColor));
 
         FixturesRepository.getInstance().setFixtures(fixtures);
@@ -707,12 +708,14 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
     @Override
     public void onObjectFound(Object3D foundObject) {
         if (modifyFixture.getVisibility() != View.VISIBLE && deleteFixture.getVisibility() != View.VISIBLE) {
-            if (foundObject != null) {
+            if (foundObject != null && foundObject instanceof FixtureRectangularPrism) {
                 Fixture fixture = FixturesRepository.getInstance().getFixture(foundObject.getName());
                 if (fixture != null && (previousObject == null || !previousObject.getName().equals(foundObject.getName()))) {
-                    previousObject = foundObject;
+                    previousObject = (FixtureRectangularPrism) foundObject;
                     showFixtureInformation(fixture);
                 }
+            } else {
+                onObjectNoFound();
             }
         }
     }
@@ -884,7 +887,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 int value = fixture.getHeight() - 1;
                                 if (value > 0) {
                                     fixtureHeight.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                    previousObject.setScaleY(value * 0.01f / ((FixtureRectangularPrism) previousObject).getHeight());
+                                    previousObject.setScaleY(value * 0.01f / previousObject.getHeight());
                                     previousObject.moveUp(-0.005);
                                     fixture.setHeight(value);
                                 }
@@ -900,7 +903,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 }
                                 int value = fixture.getHeight() + 1;
                                 fixtureHeight.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                previousObject.setScaleY(value * 0.01f / ((FixtureRectangularPrism) previousObject).getHeight());
+                                previousObject.setScaleY(value * 0.01f / previousObject.getHeight());
                                 previousObject.moveUp(0.005);
                                 fixture.setHeight(value);
                             }
@@ -1126,29 +1129,21 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
     }
 
     private void scaleObject(Fixture fixture) {
-        double fullScaleX = (fixture.getWidth() * 0.01f - ((FixtureRectangularPrism) previousObject).getWidth()) / ((FixtureRectangularPrism) previousObject).getWidth();
-        double fullScaleZ = (fixture.getDepth() * 0.01f - ((FixtureRectangularPrism) previousObject).getDepth()) / ((FixtureRectangularPrism) previousObject).getDepth();
-        //double fullScaleX = fixture.getWidth() * 0.01f / ((FixtureRectangularPrism) previousObject).getWidth();
-        //double fullScaleZ = fixture.getDepth() * 0.01f / ((FixtureRectangularPrism) previousObject).getDepth();
         double cos = Math.abs(Math.cos(Math.toRadians(fixture.getRotationAngle())));
         double sin = Math.abs(Math.sin(Math.toRadians(fixture.getRotationAngle())));
-        double mcos = Math.tan(Math.cos(Math.toRadians(2 * fixture.getRotationAngle()))) / Math.PI + 0.5;
-        double msin = Math.tan(Math.sin(Math.toRadians(2 * fixture.getRotationAngle()) - Math.PI * 0.5f)) / Math.PI + 0.5;
 
-        /*double scaleX = 1 + fullScaleX * cos + fullScaleZ * sin;
-        double scaleZ = 1 + fullScaleZ * cos + fullScaleX * sin;*/
+        double currentX = fixture.getWidth() * cos + fixture.getDepth() * sin;
+        double currentZ = fixture.getWidth() * sin + fixture.getDepth() * cos;
 
-        mcos = cos;
-        msin = sin;
+        double previousX = (previousObject.getWidth() * cos + previousObject.getDepth() * sin) * 100f;
+        double previousZ = (previousObject.getWidth() * sin + previousObject.getDepth() * cos) * 100f;
 
-        double scaleX = (fixture.getWidth() * mcos + fixture.getDepth() * msin) * 0.01f /
-                (((FixtureRectangularPrism) previousObject).getWidth() * mcos + ((FixtureRectangularPrism) previousObject).getDepth() * msin);
-        double scaleZ = (fixture.getWidth() * msin + fixture.getDepth() * mcos) * 0.01f /
-                (((FixtureRectangularPrism) previousObject).getWidth() * msin + ((FixtureRectangularPrism) previousObject).getDepth() * mcos);
+        double scaleX = currentX / previousX;
+        double scaleZ = currentZ / previousZ;
 
         previousObject.setScaleX(scaleX);
         previousObject.setScaleZ(scaleZ);
-        Log.d("scale", "rotation angle = " + fixture.getRotationAngle() +  ", mcos = " + mcos + ", msin = " + msin);
+        Log.d("scale", "rotation angle = " + fixture.getRotationAngle() +  ", cos = " + cos + ", sin = " + sin + ",\n currentX = " + currentX + ", currentZ = " + currentZ + ",\n previousX = " + previousX + ", previousZ = " + previousZ + ",\n scaleX = " + scaleX + ", scaleZ = " + scaleZ);
     }
 
     private void cancelFixtureModifications() {
