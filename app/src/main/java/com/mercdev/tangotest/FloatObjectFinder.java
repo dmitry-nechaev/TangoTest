@@ -116,13 +116,14 @@ public class FloatObjectFinder extends Plane implements OnObjectPickedListener {
         } else {
             Quaternion cameraOrientation = camera.getOrientation();
             cameraOrientation.conjugate();
+            cameraOrientation.multiply(foundObject.getOrientation());
             double[] cameraOrientationMatrix = new double[16];
             cameraOrientation.toRotationMatrix(cameraOrientationMatrix);
 
             ArrayList<FixtureRectangularPrism.Facet> objectFacets = ((FixtureRectangularPrism) foundObject).getFacets();
             for (FixtureRectangularPrism.Facet facet : objectFacets) {
                 // identify face object facet
-                double[] normal = {facet.getNormal().x, facet.getNormal().y, facet.getNormal().z, 1};
+                double[] normal = facet.getNormal();
                 double[] tNormal = new double[4];
                 org.rajawali3d.math.Matrix.multiplyMV(tNormal, 0, cameraOrientationMatrix, 0, normal, 0);
                 if (tNormal[2] > 0) {
@@ -132,7 +133,7 @@ public class FloatObjectFinder extends Plane implements OnObjectPickedListener {
 
                     Vector3[] tVertices = new Vector3[4];
                     for (int i = 0; i < 4; i++) {
-                        double[] vertex = {facet.getVertices()[i].x, facet.getVertices()[i].y, facet.getVertices()[i].z, 1};
+                        double[] vertex = facet.getVertex(i);
                         double[] tVertex = new double[4];
                         org.rajawali3d.math.Matrix.multiplyMV(tVertex, 0, modelViewMatrix, 0, vertex, 0);
                         tVertices[i] = new Vector3(tVertex[0], tVertex[1], tVertex[2]);

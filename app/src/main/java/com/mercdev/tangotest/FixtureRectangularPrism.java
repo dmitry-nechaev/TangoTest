@@ -1,11 +1,13 @@
 package com.mercdev.tangotest;
 
 import android.opengl.GLES20;
+import android.support.annotation.IntRange;
+import android.support.annotation.Size;
 
 import org.rajawali3d.BufferInfo;
 import org.rajawali3d.Object3D;
-import org.rajawali3d.math.vector.Vector3;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 /**
@@ -14,21 +16,31 @@ import java.util.ArrayList;
 
 public class FixtureRectangularPrism extends Object3D {
 
+    private static final int[] TOP_VERTEX_INDEXES = {0, 1, 4, 7, 10, 11, 12, 13, 16, 17, 18, 19};
+
     public class Facet {
-        private Vector3[] vertices;
-        private Vector3 normal;
+        private int[] vertexIndexes;
+        private int[] normalIndexes;
 
-        public Facet(Vector3[] vertices, Vector3 normal) {
-            this.vertices = vertices;
-            this.normal = normal;
+        public Facet(@Size(12) int[] vertexIndexes, @Size(3) int[] normalIndexes) {
+            this.vertexIndexes = vertexIndexes;
+            this.normalIndexes = normalIndexes;
         }
 
-        public Vector3 getNormal() {
-            return normal;
+        public double[] getNormal() {
+            FloatBuffer normals = getGeometry().getNormals();
+            return new double[] {normals.get(normalIndexes[0]),
+                                 normals.get(normalIndexes[1]),
+                                 normals.get(normalIndexes[2]),
+                                 1.0};
         }
 
-        public Vector3[] getVertices() {
-            return vertices;
+        public double[] getVertex(@IntRange(from = 0, to = 3) int indexVertex) {
+            FloatBuffer vertices = getGeometry().getVertices();
+            return new double[] {vertices.get(vertexIndexes[indexVertex * 3]),
+                                 vertices.get(vertexIndexes[indexVertex * 3 + 1]),
+                                 vertices.get(vertexIndexes[indexVertex * 3 + 2]),
+                                 1.0};
         }
     }
 
@@ -186,16 +198,13 @@ public class FixtureRectangularPrism extends Object3D {
 
         setData(vertices, GLES20.GL_DYNAMIC_DRAW, normals, GLES20.GL_STATIC_DRAW, textureCoords, GLES20.GL_STATIC_DRAW, colors, GLES20.GL_STATIC_DRAW, indices, GLES20.GL_STATIC_DRAW, false);
 
-        for (int i = 0; i < vertices.length; i = i + 12) {
-            Vector3 vertex_1 = new Vector3(vertices[i], vertices[i + 1], vertices[i + 2]);
-            Vector3 vertex_2 = new Vector3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
-            Vector3 vertex_3 = new Vector3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
-            Vector3 vertex_4 = new Vector3(vertices[i + 9], vertices[i + 10], vertices[i + 11]);
-            Vector3 normal = new Vector3(normals[i], normals[i + 1], normals[i + 2]);
+        facets.add(new Facet(new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, new int[] {0, 1, 2}));
+        facets.add(new Facet(new int[] {12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23}, new int[] {12, 13, 14}));
+        facets.add(new Facet(new int[] {24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35}, new int[] {24, 25, 26}));
+        facets.add(new Facet(new int[] {36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47}, new int[] {36, 37, 38}));
+        facets.add(new Facet(new int[] {48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59}, new int[] {48, 49, 50}));
+        facets.add(new Facet(new int[] {60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71}, new int[] {60, 61, 62}));
 
-            Vector3[] facetVertices = {vertex_1, vertex_2, vertex_3, vertex_4};
-            facets.add(new Facet(facetVertices, normal));
-        }
 
         needUpdateVertexBuffer = false;
         vertices = null;
@@ -251,14 +260,11 @@ public class FixtureRectangularPrism extends Object3D {
 
     public void setHeight(float height) {
         float heightDelta = height - mHeight;
-        float topVertexY = getGeometry().getVertices().get(1);
-        for (int i = 0; i < getGeometry().getNumVertices(); i++) {
-            int index = i * 3 + 1;
+        for (int i = 0; i < TOP_VERTEX_INDEXES.length; i++) {
+            int index = TOP_VERTEX_INDEXES[i] * 3 + 1;
             float value = getGeometry().getVertices().get(index);
-            if (value == topVertexY) {
-                value += heightDelta;
-                getGeometry().getVertices().put(index, value);
-            }
+            value += heightDelta;
+            getGeometry().getVertices().put(index, value);
         }
         mHeight = height;
         needUpdateVertexBuffer = true;
