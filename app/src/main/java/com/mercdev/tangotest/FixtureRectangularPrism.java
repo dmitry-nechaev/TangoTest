@@ -1,5 +1,8 @@
 package com.mercdev.tangotest;
 
+import android.opengl.GLES20;
+
+import org.rajawali3d.BufferInfo;
 import org.rajawali3d.Object3D;
 import org.rajawali3d.math.vector.Vector3;
 
@@ -35,7 +38,7 @@ public class FixtureRectangularPrism extends Object3D {
     private boolean mCreateTextureCoords;
     private boolean mCreateVertexColorBuffer;
     private ArrayList<Facet> facets = new ArrayList<>();
-
+    private boolean needUpdateVertexBuffer;
     /**
      * Creates a cube primitive. Calling this constructor will create texture coordinates but no vertex color buffer.
      *
@@ -181,7 +184,7 @@ public class FixtureRectangularPrism extends Object3D {
                 20, 21, 22, 20, 22, 23,
         };
 
-        setData(vertices, normals, textureCoords, colors, indices, createVBOs);
+        setData(vertices, GLES20.GL_DYNAMIC_DRAW, normals, GLES20.GL_STATIC_DRAW, textureCoords, GLES20.GL_STATIC_DRAW, colors, GLES20.GL_STATIC_DRAW, indices, GLES20.GL_STATIC_DRAW, false);
 
         for (int i = 0; i < vertices.length; i = i + 12) {
             Vector3 vertex_1 = new Vector3(vertices[i], vertices[i + 1], vertices[i + 2]);
@@ -194,6 +197,7 @@ public class FixtureRectangularPrism extends Object3D {
             facets.add(new Facet(facetVertices, normal));
         }
 
+        needUpdateVertexBuffer = false;
         vertices = null;
         normals = null;
         skyboxTextureCoords = null;
@@ -216,5 +220,64 @@ public class FixtureRectangularPrism extends Object3D {
 
     public ArrayList<Facet> getFacets() {
         return facets;
+    }
+
+    public boolean needUpdateVertexBuffer() {
+        return needUpdateVertexBuffer;
+    }
+
+    public void updateVertexBuffer() {
+        BufferInfo vertexBufferInfo = getGeometry().getVertexBufferInfo();
+        getGeometry().changeBufferData(vertexBufferInfo, getGeometry().getVertices(), 0, true);
+        needUpdateVertexBuffer = false;
+    }
+
+    public void setWidth(float width) {
+        float widthDelta = width - mWidth;
+        float widthDeltaHalf = widthDelta * 0.5f;
+        for (int i = 0; i < getGeometry().getNumVertices(); i++) {
+            int index = i * 3;
+            float value = getGeometry().getVertices().get(index);
+            if (value > 0.0f) {
+                value += widthDeltaHalf;
+            } else if (value < 0.0f) {
+                value -= widthDeltaHalf;
+            }
+            getGeometry().getVertices().put(index, value);
+        }
+        mWidth = width;
+        needUpdateVertexBuffer = true;
+    }
+
+    public void setHeight(float height) {
+        float heightDelta = height - mHeight;
+        float topVertexY = getGeometry().getVertices().get(1);
+        for (int i = 0; i < getGeometry().getNumVertices(); i++) {
+            int index = i * 3 + 1;
+            float value = getGeometry().getVertices().get(index);
+            if (value == topVertexY) {
+                value += heightDelta;
+                getGeometry().getVertices().put(index, value);
+            }
+        }
+        mHeight = height;
+        needUpdateVertexBuffer = true;
+    }
+
+    public void setDepth(float depth) {
+        float depthDelta = depth - mDepth;
+        float depthDeltaHalf = depthDelta * 0.5f;
+        for (int i = 0; i < getGeometry().getNumVertices(); i++) {
+            int index = i * 3 + 2;
+            float value = getGeometry().getVertices().get(index);
+            if (value > 0.0f) {
+                value += depthDeltaHalf;
+            } else if (value < 0.0f) {
+                value -= depthDeltaHalf;
+            }
+            getGeometry().getVertices().put(index, value);
+        }
+        mDepth = depth;
+        needUpdateVertexBuffer = true;
     }
 }

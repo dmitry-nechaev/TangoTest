@@ -12,7 +12,6 @@ import android.hardware.display.DisplayManager;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -92,8 +91,8 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
 
     private double startModificationCameraX, startModificationCameraZ, startModificationFixtureX, startModificationFixtureZ,
             startHoldingX, startHoldingZ, startHoldingRotationAngle, startHoldingCameraAngle,
-            startModificationRotationAngle, startModificationCameraAngle,
-            startModificationFixtureScaleX, startModificationFixtureScaleY, startModificationFixtureScaleZ;
+            startModificationRotationAngle, startModificationCameraAngle;
+    private float startModificationFixtureWidth, startModificationFixtureHeight, startModificationFixtureDepth;
     private Fixture startModificationFixture;
 
     /**
@@ -193,7 +192,6 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
         deleteFixture = findViewById(R.id.delete_fixture_container);
         modifyFixture = findViewById(R.id.modify_fixture_container);
         holdCheckbox = (CheckBox) findViewById(R.id.modify_fixture_hold);
-        marker = findViewById(R.id.marker);
 
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
         minimap = (Minimap) findViewById(R.id.minimap);
@@ -554,33 +552,38 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 // Update the camera pose from the renderer
                                 renderer.updateRenderCameraPose(lastFramePose);
                                 cameraPoseTimestamp = lastFramePose.timestamp;
-                                if (modifyFixture.getVisibility() == View.VISIBLE && previousObject != null && holdCheckbox.isChecked() && isHoldChecked) {
-                                    float[] rotation = lastFramePose.getRotationAsFloats();
-                                    Quaternion q = new Quaternion(rotation[3], rotation[0], rotation[1], rotation[2]);
-                                    double rotationAngle = Math.toDegrees(-q.getRotationY()) - startHoldingCameraAngle;
-                                    previousObject.setRotY(startHoldingRotationAngle + rotationAngle);
-                                    Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
-                                    fixture.setRotationAngle(startHoldingRotationAngle + rotationAngle);
+                                if (modifyFixture.getVisibility() == View.VISIBLE && previousObject != null) {
+                                    if (holdCheckbox.isChecked() && isHoldChecked) {
+                                        float[] rotation = lastFramePose.getRotationAsFloats();
+                                        Quaternion q = new Quaternion(rotation[3], rotation[0], rotation[1], rotation[2]);
+                                        double rotationAngle = Math.toDegrees(-q.getRotationY()) - startHoldingCameraAngle;
+                                        previousObject.setRotY(startHoldingRotationAngle + rotationAngle);
+                                        Fixture fixture = FixturesRepository.getInstance().getFixture(startModificationFixture.getName());
+                                        fixture.setRotationAngle(startHoldingRotationAngle + rotationAngle);
 
-                                    double angle = Math.toRadians(rotationAngle);
+                                        double angle = Math.toRadians(rotationAngle);
 
-                                    double x2 = startHoldingX * Math.cos(angle) - startHoldingZ * Math.sin(angle) + renderer.getCameraPosition().x;
-                                    double z2 = startHoldingX * Math.sin(angle) + startHoldingZ * Math.cos(angle) + renderer.getCameraPosition().z;
+                                        double x2 = startHoldingX * Math.cos(angle) - startHoldingZ * Math.sin(angle) + renderer.getCameraPosition().x;
+                                        double z2 = startHoldingX * Math.sin(angle) + startHoldingZ * Math.cos(angle) + renderer.getCameraPosition().z;
 
-                                    previousObject.setX(x2);
-                                    previousObject.setZ(z2);
+                                        previousObject.setX(x2);
+                                        previousObject.setZ(z2);
 
-                                    fixture.setPosition(new Point((int) (x2 * 100f - fixture.getWidth() * 0.5f),
-                                            (int) (z2 * 100f - fixture.getDepth() * 0.5f)));
-                                    scaleObject(fixture);
+                                        fixture.setPosition(new Point((int) (x2 * 100f - fixture.getWidth() * 0.5f),
+                                                (int) (z2 * 100f - fixture.getDepth() * 0.5f)));
+                                        //scaleObject(fixture);
 
-                                    minimap.processFixtures();
+                                        minimap.processFixtures();
+                                    }
+                                    if (previousObject.needUpdateVertexBuffer()) {
+                                        previousObject.updateVertexBuffer();
+                                    }
+                                } else {
+                                    renderer.getObjectAt(mSurfaceView.getWidth() / 2, mSurfaceView.getHeight() / 2);
                                 }
 
                                 minimap.setCameraPosition(lastFramePose);
                                 minimap.postInvalidate();
-
-                                renderer.getObjectAt(mSurfaceView.getWidth() / 2, mSurfaceView.getHeight() / 2);
                             } else {
                                 // When the pose status is not valid, it indicates the tracking has
                                 // been lost. In this case, we simply stop rendering.
@@ -707,36 +710,29 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
 
     @Override
     public void onObjectFound(Object3D foundObject) {
-        if (modifyFixture.getVisibility() != View.VISIBLE && deleteFixture.getVisibility() != View.VISIBLE) {
-            if (foundObject != null && foundObject instanceof FixtureRectangularPrism) {
-                Fixture fixture = FixturesRepository.getInstance().getFixture(foundObject.getName());
-                if (fixture != null && (previousObject == null || !previousObject.getName().equals(foundObject.getName()))) {
-                    previousObject = (FixtureRectangularPrism) foundObject;
-                    showFixtureInformation(fixture);
-                }
-            } else {
-                onObjectNoFound();
+        if (previousObject != null && previousObject.needUpdateVertexBuffer()) {
+            previousObject.updateVertexBuffer();
+        }
+
+        if (foundObject != null && foundObject instanceof FixtureRectangularPrism) {
+            Fixture fixture = FixturesRepository.getInstance().getFixture(foundObject.getName());
+            if (fixture != null && (previousObject == null || !previousObject.getName().equals(foundObject.getName()))) {
+                previousObject = (FixtureRectangularPrism) foundObject;
+                showFixtureInformation(fixture);
             }
         }
     }
 
     @Override
     public void onObjectNoFound() {
-        if (modifyFixture.getVisibility() != View.VISIBLE
-                && deleteFixture.getVisibility() != View.VISIBLE
-                && previousObject != null) {
-            if (modifyFixture.getVisibility() == View.VISIBLE) {
-                cancelFixtureModifications();
-            }
+        if (deleteFixture.getVisibility() != View.VISIBLE && previousObject != null) {
 
             showNothingTargeted();
+            if (previousObject.needUpdateVertexBuffer()) {
+                previousObject.updateVertexBuffer();
+            }
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    previousObject = null;
-                }
-            });
+            previousObject = null;
         }
     }
 
@@ -851,9 +847,9 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
             startModificationFixtureZ = previousObject.getZ();
             startModificationRotationAngle = Math.toDegrees(previousObject.getRotY());
             startModificationCameraAngle = Math.toDegrees(renderer.getCameraAngle());
-            startModificationFixtureScaleX = previousObject.getScaleX();
-            startModificationFixtureScaleY = previousObject.getScaleY();
-            startModificationFixtureScaleZ = previousObject.getScaleZ();
+            startModificationFixtureWidth = previousObject.getWidth();
+            startModificationFixtureHeight = previousObject.getHeight();
+            startModificationFixtureDepth = previousObject.getDepth();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -887,9 +883,8 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 int value = fixture.getHeight() - 1;
                                 if (value > 0) {
                                     fixtureHeight.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                    previousObject.setScaleY(value * 0.01f / previousObject.getHeight());
-                                    previousObject.moveUp(-0.005);
                                     fixture.setHeight(value);
+                                    previousObject.setHeight(value * 0.01f);
                                 }
                             }
                         }
@@ -903,9 +898,8 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 }
                                 int value = fixture.getHeight() + 1;
                                 fixtureHeight.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                previousObject.setScaleY(value * 0.01f / previousObject.getHeight());
-                                previousObject.moveUp(0.005);
                                 fixture.setHeight(value);
+                                previousObject.setHeight(value * 0.01f);
                             }
                         }
                     });
@@ -957,7 +951,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 if (value > 0) {
                                     fixture.setWidth(value);
                                     fixtureWidth.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                    scaleObject(fixture);
+                                    previousObject.setWidth(value * 0.01f);
                                 }
 
                                 minimap.processFixtures();
@@ -975,7 +969,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 int value = fixture.getWidth() + 1;
                                 fixture.setWidth(value);
                                 fixtureWidth.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                scaleObject(fixture);
+                                previousObject.setWidth(value * 0.01f);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1030,7 +1024,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 if (value > 0) {
                                     fixture.setDepth(value);
                                     fixtureDepth.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                    scaleObject(fixture);
+                                    previousObject.setDepth(value * 0.01f);
 
                                     minimap.processFixtures();
                                     minimap.postInvalidate();
@@ -1048,7 +1042,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 int value = fixture.getDepth() + 1;
                                 fixture.setDepth(value);
                                 fixtureDepth.setText(new DecimalFormat("##.##").format(value * 0.01f));
-                                scaleObject(fixture);
+                                previousObject.setDepth(value * 0.01f);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1071,7 +1065,6 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 }
                                 previousObject.setRotY(value);
                                 storedFixture.setRotationAngle(value);
-                                scaleObject(storedFixture);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1092,7 +1085,6 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 }
                                 previousObject.setRotY(value);
                                 storedFixture.setRotationAngle(value);
-                                scaleObject(storedFixture);
 
                                 minimap.processFixtures();
                                 minimap.postInvalidate();
@@ -1128,24 +1120,6 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
         }
     }
 
-    private void scaleObject(Fixture fixture) {
-        double cos = Math.abs(Math.cos(Math.toRadians(fixture.getRotationAngle())));
-        double sin = Math.abs(Math.sin(Math.toRadians(fixture.getRotationAngle())));
-
-        double currentX = fixture.getWidth() * cos + fixture.getDepth() * sin;
-        double currentZ = fixture.getWidth() * sin + fixture.getDepth() * cos;
-
-        double previousX = (previousObject.getWidth() * cos + previousObject.getDepth() * sin) * 100f;
-        double previousZ = (previousObject.getWidth() * sin + previousObject.getDepth() * cos) * 100f;
-
-        double scaleX = currentX / previousX;
-        double scaleZ = currentZ / previousZ;
-
-        previousObject.setScaleX(scaleX);
-        previousObject.setScaleZ(scaleZ);
-        Log.d("scale", "rotation angle = " + fixture.getRotationAngle() +  ", cos = " + cos + ", sin = " + sin + ",\n currentX = " + currentX + ", currentZ = " + currentZ + ",\n previousX = " + previousX + ", previousZ = " + previousZ + ",\n scaleX = " + scaleX + ", scaleZ = " + scaleZ);
-    }
-
     private void cancelFixtureModifications() {
         runOnUiThread(new Runnable() {
             @Override
@@ -1154,7 +1128,9 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                 previousObject.setX(startModificationFixtureX);
                 previousObject.setZ(startModificationFixtureZ);
                 previousObject.setRotY(startModificationRotationAngle);
-                previousObject.setScale(startModificationFixtureScaleX, startModificationFixtureScaleY, startModificationFixtureScaleZ);
+                previousObject.setHeight(startModificationFixtureHeight);
+                previousObject.setDepth(startModificationFixtureDepth);
+                previousObject.setWidth(startModificationFixtureWidth);
                 previousObject.setColor(startModificationFixture.getColor());
 
                 minimap.processFixtures();
