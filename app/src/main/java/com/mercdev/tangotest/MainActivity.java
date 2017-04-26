@@ -571,7 +571,6 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
 
                                         fixture.setPosition(new Point((int) (x2 * 100f - fixture.getWidth() * 0.5f),
                                                 (int) (z2 * 100f - fixture.getDepth() * 0.5f)));
-                                        //scaleObject(fixture);
 
                                         minimap.processFixtures();
                                     }
