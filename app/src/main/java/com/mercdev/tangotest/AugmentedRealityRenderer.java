@@ -79,6 +79,7 @@ public class AugmentedRealityRenderer extends Renderer {
         floorPlaneEquation = getFloorPlaneEquation(floorPlaneTransformMatrix);
 
         floorQuaternion = new Quaternion().fromMatrix(floorPlaneTransformMatrix4);
+        floorQuaternion.conjugate();
     }
 
     @Override
@@ -134,9 +135,9 @@ public class AugmentedRealityRenderer extends Renderer {
                 rect.setMaterial(material);
                 rect.setColor(fixture.getColor());
                 rect.setName(fixture.getName());
-                rect.setRotX(floorQuaternion.getRotationX());
+                rect.setRotX(Math.toDegrees(floorQuaternion.getRotationX()));
                 rect.setRotY(fixture.getRotationAngle());
-                rect.setRotZ(floorQuaternion.getRotationZ());
+                rect.setRotZ(Math.toDegrees(floorQuaternion.getRotationZ()));
                 rect.setPosition(getObject3DPosition(fixture));
                 rect.setDrawingMode(GLES20.GL_TRIANGLES);
                 rect.setBackSided(true);
