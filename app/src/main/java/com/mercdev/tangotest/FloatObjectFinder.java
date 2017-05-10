@@ -145,24 +145,13 @@ public class FloatObjectFinder extends Plane implements OnObjectPickedListener {
                             ((((tVertices[3].x - tVertices[2].x) * (0 - tVertices[2].y)) - ((tVertices[3].y - tVertices[2].y) * (0 - tVertices[2].x))) > 0) &&
                             ((((tVertices[0].x - tVertices[3].x) * (0 - tVertices[3].y)) - ((tVertices[0].y - tVertices[3].y) * (0 - tVertices[3].x))) > 0)) {
 
-                            /* define equation of plane by 3 points
-                               A = y0 * (z1 - z2) + y1 * (z2 - z0) + y2 * (z0 - z1)
-                               B = z0 * (x1 - x2) + z1 * (x2 - x0) + z2 * (x0 - x1)
-                               C = x0 * (y1 - y2) + x1 * (y2 - y0) + x2 * (y0 - y1)
-                               -D = x0 * (y1 * z2 - y2 * z1) + x1 * (y2 * z0 - y0 * z2) + x2 * (y0 * z1 - y1 * z0)
-                            */
-
-                        double a = tVertices[0].y * (tVertices[1].z - tVertices[2].z) + tVertices[1].y * (tVertices[2].z - tVertices[0].z) + tVertices[2].y * (tVertices[0].z - tVertices[1].z);
-                        double b = tVertices[0].z * (tVertices[1].x - tVertices[2].x) + tVertices[1].z * (tVertices[2].x - tVertices[0].x) + tVertices[2].z * (tVertices[0].x - tVertices[1].x);
-                        double c = tVertices[0].x * (tVertices[1].y - tVertices[2].y) + tVertices[1].x * (tVertices[2].y - tVertices[0].y) + tVertices[2].x * (tVertices[0].y - tVertices[1].y);
-                        double d = -(tVertices[0].x * (tVertices[1].y * tVertices[2].z - tVertices[2].y * tVertices[1].z) + tVertices[1].x * (tVertices[2].y * tVertices[0].z - tVertices[0].y * tVertices[2].z) +
-                                   tVertices[2].x * (tVertices[0].y * tVertices[1].z - tVertices[1].y * tVertices[0].z));
+                        double[] facetPlane = PlaneDefinitionHelper.getPlaneEquationByPoints(new Vector3[] {tVertices[0], tVertices[1], tVertices[2]});
 
                         // calculate distance to found plane considering position of objects in perspective
                         double[] projectionMatrix = new double[16];
                         camera.getProjectionMatrix().toArray(projectionMatrix);
 
-                        double[] distanceViewVector = {0, 0, -d / c, 1};
+                        double[] distanceViewVector = {0, 0, -facetPlane[3] / facetPlane[2], 1};
                         double[] distanceProjectionVector = new double[4];
                         org.rajawali3d.math.Matrix.multiplyMV(distanceProjectionVector, 0, projectionMatrix, 0, distanceViewVector, 0);
 
@@ -173,9 +162,9 @@ public class FloatObjectFinder extends Plane implements OnObjectPickedListener {
                         if (distanceToPlane > 0) {
                             // calculate intersection point of Oz with plane
                             // need to reduce distance to plane, that ObjectFinder floats on plane and doesn't flicker
-                            double[] tIntersectionPoint = {0, 0, -d / c * 0.95, 1};
+                            double[] tIntersectionPoint = {0, 0, -facetPlane[3] / facetPlane[2] * 0.95, 1};
 
-                            double[] normalPlane = {a, b, c};
+                            double[] normalPlane = {facetPlane[0], facetPlane[1], facetPlane[2]};
 
                             float[] cameraModelMatrix = new float[16];
                             camera.getModelMatrix().toFloatArray(cameraModelMatrix);

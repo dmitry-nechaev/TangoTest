@@ -30,6 +30,7 @@ import org.rajawali3d.materials.Material;
 import org.rajawali3d.materials.methods.DiffuseMethod;
 import org.rajawali3d.materials.textures.ATexture;
 import org.rajawali3d.materials.textures.StreamingTexture;
+import org.rajawali3d.math.Matrix;
 import org.rajawali3d.math.Matrix4;
 import org.rajawali3d.math.Quaternion;
 import org.rajawali3d.math.vector.Vector3;
@@ -59,18 +60,25 @@ public class AugmentedRealityRenderer extends Renderer {
 
     private TangoScreenQuad backgroundQuad;
     private ArrayList<Object3D> objects = new ArrayList<>();
-    private Matrix4 transformFloorMatrix4;
-
     private boolean isFixturesVisible = true;
 
+    private double[] floorPlaneTransformMatrix;
+    private double[] floorPlaneEquation;
+    private Quaternion floorQuaternion;
     private ObjectColorPicker picker;
     private FloatObjectFinder objectFinder;
     private FloatObjectFinder.OnFloatObjectFinderListener onFloatObjectFinderListener;
 
-    public AugmentedRealityRenderer(Context context, FloatObjectFinder.OnFloatObjectFinderListener onFloatObjectFinderListener, Matrix4 transformFloorMatrix4) {
+    public AugmentedRealityRenderer(Context context, FloatObjectFinder.OnFloatObjectFinderListener onFloatObjectFinderListener, Matrix4 floorPlaneTransformMatrix4) {
         super(context);
-        this.transformFloorMatrix4 = transformFloorMatrix4;
         this.onFloatObjectFinderListener = onFloatObjectFinderListener;
+
+        floorPlaneTransformMatrix = new double[16];
+        floorPlaneTransformMatrix4.toArray(floorPlaneTransformMatrix);
+
+        floorPlaneEquation = getFloorPlaneEquation(floorPlaneTransformMatrix);
+
+        floorQuaternion = new Quaternion().fromMatrix(floorPlaneTransformMatrix4);
     }
 
     @Override
@@ -111,9 +119,6 @@ public class AugmentedRealityRenderer extends Renderer {
         light.setPosition(3, 2, 4);
         getCurrentScene().addLight(light);
 
-        Vector3 floorPlaneVector = transformFloorMatrix4.getTranslation();
-        double cameraHeight = floorPlaneVector.y;
-
         Material material = new Material();
         material.enableLighting(true);
         material.setDiffuseMethod(new DiffuseMethod.Lambert());
@@ -126,12 +131,14 @@ public class AugmentedRealityRenderer extends Renderer {
                 float height = (float) fixture.getHeight() / 100f;
                 float depth = (float) fixture.getDepth() / 100f;
                 FixtureRectangularPrism rect = new FixtureRectangularPrism(width, height, depth);
-                rect.setPosition((double) fixture.getPosition().x / 100f + width * 0.5f, height * 0.5f + cameraHeight, (double) fixture.getPosition().y / 100f + depth * 0.5f);
                 rect.setMaterial(material);
                 rect.setColor(fixture.getColor());
                 rect.setName(fixture.getName());
-                rect.setDrawingMode(GLES20.GL_TRIANGLES);
+                rect.setRotX(floorQuaternion.getRotationX());
                 rect.setRotY(fixture.getRotationAngle());
+                rect.setRotZ(floorQuaternion.getRotationZ());
+                rect.setPosition(getObject3DPosition(fixture));
+                rect.setDrawingMode(GLES20.GL_TRIANGLES);
                 rect.setBackSided(true);
                 rect.setDoubleSided(true);
                 rect.setBlendingEnabled(true);
@@ -268,5 +275,29 @@ public class AugmentedRealityRenderer extends Renderer {
                     break;
                 }
             }
+    }
+
+    private Vector3 getObject3DPosition(Fixture fixture) {
+        Vector3 position = new Vector3(0, 0, 0);
+        position.x = (fixture.getPosition().x + fixture.getWidth() * 0.5f) / 100f ;
+        position.z = (fixture.getPosition().y + fixture.getDepth() * 0.5f) / 100f;
+
+        double floorHeight = -((floorPlaneEquation[0] * position.x + floorPlaneEquation[2] * position.z + floorPlaneEquation[3]) / floorPlaneEquation[1]);
+        position.y = fixture.getHeight() / 200f + floorHeight;
+        Log.d("AGn", String.format("floorHeight: %f, position.y: %f", floorHeight, position.y));
+        return position;
+    }
+
+    private double[] getFloorPlaneEquation(double[] floorPlaneTransformMatrix) {
+        Vector3[] planePoints = new Vector3[3];
+
+        double[] openGlPoints = {0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1};
+        for(int i = 0; i < 3; i++) {
+            double[] openGlPoint = new double[] {openGlPoints[i * 4], openGlPoints[i * 4 + 1], openGlPoints[i * 4 + 2], openGlPoints[i * 4 + 3]};
+            double[] planePoint = new double[4];
+            Matrix.multiplyMV(planePoint, 0, floorPlaneTransformMatrix, 0, openGlPoint, 0);
+            planePoints[i] = new Vector3(planePoint[0], planePoint[1], planePoint[2]);
+        }
+        return PlaneDefinitionHelper.getPlaneEquationByPoints(planePoints);
     }
 }

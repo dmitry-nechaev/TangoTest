@@ -1,6 +1,7 @@
 package com.mercdev.tangotest;
 
 import android.opengl.Matrix;
+import android.support.annotation.Size;
 import android.util.Log;
 
 import com.google.atap.tangoservice.TangoException;
@@ -126,6 +127,28 @@ public class PlaneDefinitionHelper {
         // relative of world's coordinate system reference point
         Matrix.multiplyMM(openGlTplane, 0, localTransformMatrix, 0, depthTplane, 0);
         return new Matrix4(openGlTplane);
+    }
+
+
+    /**
+     *Calculate the equation of the plane by three points
+     *
+     * A = y0 * (z1 - z2) + y1 * (z2 - z0) + y2 * (z0 - z1)
+     * B = z0 * (x1 - x2) + z1 * (x2 - x0) + z2 * (x0 - x1)
+     * C = x0 * (y1 - y2) + x1 * (y2 - y0) + x2 * (y0 - y1)
+     * -D = x0 * (y1 * z2 - y2 * z1) + x1 * (y2 * z0 - y0 * z2) + x2 * (y0 * z1 - y1 * z0)
+     *
+     * @param points    The array of points on the plane
+     * @return          The array of a, b, c, d coefficients of the plane
+     *
+     */
+    public static double[] getPlaneEquationByPoints(@Size(3) Vector3[] points) {
+        double a = points[0].y * (points[1].z - points[2].z) + points[1].y * (points[2].z - points[0].z) + points[2].y * (points[0].z - points[1].z);
+        double b = points[0].z * (points[1].x - points[2].x) + points[1].z * (points[2].x - points[0].x) + points[2].z * (points[0].x - points[1].x);
+        double c = points[0].x * (points[1].y - points[2].y) + points[1].x * (points[2].y - points[0].y) + points[2].x * (points[0].y - points[1].y);
+        double d = -(points[0].x * (points[1].y * points[2].z - points[2].y * points[1].z) + points[1].x * (points[2].y * points[0].z - points[0].y * points[2].z) +
+                   points[2].x * (points[0].y * points[1].z - points[1].y * points[0].z));
+        return new double[] {a, b, c, d};
     }
 
     /**
