@@ -683,13 +683,13 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
         ArrayList<Fixture> fixtures = new ArrayList<>();
 
         int fixtureColor = getResources().getColor(R.color.object_color);
-        fixtures.add(new Fixture("1", new Point(345, -845), 280, 25, 910, 0f, fixtureColor, Fixture.Type.Wall));
-        fixtures.add(new Fixture("2", new Point(-860, -845), 280, 25, 910, 0f, fixtureColor, Fixture.Type.Wall));
-        fixtures.add(new Fixture("3", new Point(-835, 40), 280, 1180, 25, 0f, fixtureColor, Fixture.Type.Wall));
-        fixtures.add(new Fixture("4", new Point(-835, -845), 280, 1180, 25, 0f, fixtureColor, Fixture.Type.Wall));
-        fixtures.add(new Fixture("1", new Point(-257, -290), 137, 86, 210, 0f, fixtureColor, Fixture.Type.Couch));
-        fixtures.add(new Fixture("2", new Point(-457, -390), 280, 100, 200, 0f, fixtureColor, Fixture.Type.Couch));
-        fixtures.add(new Fixture("3", new Point(-657, -490), 137, 210, 86, 0f, fixtureColor, Fixture.Type.Couch));
+        fixtures.add(new Fixture("Wall #1", new Point(345, -845), 280, 25, 910, 0f, fixtureColor, Fixture.Type.Wall));
+        fixtures.add(new Fixture("Wall #2", new Point(-860, -845), 280, 25, 910, 0f, fixtureColor, Fixture.Type.Wall));
+        fixtures.add(new Fixture("Wall #3", new Point(-835, 40), 280, 1180, 25, 0f, fixtureColor, Fixture.Type.Wall));
+        fixtures.add(new Fixture("Wall #4", new Point(-835, -845), 280, 1180, 25, 0f, fixtureColor, Fixture.Type.Wall));
+        fixtures.add(new Fixture("Couch #1", new Point(-257, -290), 137, 86, 210, 0f, fixtureColor, Fixture.Type.Couch));
+        fixtures.add(new Fixture("Couch #2", new Point(-457, -390), 280, 100, 200, 0f, fixtureColor, Fixture.Type.Couch));
+        fixtures.add(new Fixture("Couch #3", new Point(-657, -490), 137, 210, 86, 0f, fixtureColor, Fixture.Type.Couch));
 
         FixturesRepository.getInstance().setFixtures(fixtures);
     }

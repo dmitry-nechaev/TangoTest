@@ -93,24 +93,6 @@ public class Fixture implements Cloneable {
         return type;
     }
 
-    public String toString(Resources resources) {
-        String typeString;
-        switch (getType()) {
-            case Couch:
-                typeString = resources.getString(R.string.object_type_couch);
-                break;
-            case Fixture:
-                typeString = resources.getString(R.string.object_type_fixture);
-                break;
-            case Wall:
-                typeString = resources.getString(R.string.object_type_wall);
-                break;
-            default:
-                typeString = "";
-        }
-        return typeString + " #" + getName();
-    }
-
     @Override
     public Object clone() {
         Object result = new Fixture(name, position, height, width, depth, rotationAngle, color, type);

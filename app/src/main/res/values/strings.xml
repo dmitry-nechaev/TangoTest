@@ -28,9 +28,5 @@
     <string name="fixture_dialog_hold">Hold</string>
     <string name="fixture_dialog_angle">Angle</string>
 
-    <string name="object_type_fixture">Fixture</string>
-    <string name="object_type_wall">Wall</string>
-    <string name="object_type_couch">Couch</string>
-
 
 </resources>
