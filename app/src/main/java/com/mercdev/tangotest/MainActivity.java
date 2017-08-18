@@ -16,8 +16,10 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Display;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
@@ -67,7 +69,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
     private TextView coverFrameText;
     private Minimap minimap;
     private View nothingTargeted, targetedFixture, deleteFixture, modifyFixture;
-    private CheckBox holdCheckbox;
+    private Button holdCheckbox;
 
     private AugmentedRealityRenderer renderer;
     private Tango tango;
@@ -191,7 +193,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
         targetedFixture = findViewById(R.id.targeted_fixture_container);
         deleteFixture = findViewById(R.id.delete_fixture_container);
         modifyFixture = findViewById(R.id.modify_fixture_container);
-        holdCheckbox = (CheckBox) findViewById(R.id.modify_fixture_hold);
+        holdCheckbox = (Button) findViewById(R.id.modify_fixture_hold);
 
         mapContainer = (FrameLayout) findViewById(R.id.map_container);
         minimap = (Minimap) findViewById(R.id.minimap);
@@ -553,7 +555,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                 renderer.updateRenderCameraPose(lastFramePose);
                                 cameraPoseTimestamp = lastFramePose.timestamp;
                                 if (modifyFixture.getVisibility() == View.VISIBLE && previousObject != null) {
-                                    if (holdCheckbox.isChecked() && isHoldChecked) {
+                                    if (isHoldChecked) {
                                         float[] rotation = lastFramePose.getRotationAsFloats();
                                         Quaternion q = new Quaternion(rotation[3], rotation[0], rotation[1], rotation[2]);
                                         double rotationAngle = Math.toDegrees(-q.getRotationY()) - startHoldingCameraAngle;
@@ -856,17 +858,23 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                             .setText(String.format(getResources().getString(R.string.fixture_dialog_modify_fixture), fixture.getName()));
 
                     isHoldChecked = false;
-                    holdCheckbox.setChecked(isHoldChecked);
-                    holdCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    holdCheckbox.setOnTouchListener(new View.OnTouchListener() {
                         @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            if (isChecked) {
-                                startHoldingX = previousObject.getX() - renderer.getCameraPosition().x;
-                                startHoldingZ = previousObject.getZ() - renderer.getCameraPosition().z;
-                                startHoldingRotationAngle = Math.toDegrees(previousObject.getRotY());
-                                startHoldingCameraAngle = Math.toDegrees(renderer.getCameraAngle());
+                        public boolean onTouch(View v, MotionEvent event) {
+                            switch(event.getAction()) {
+                                case MotionEvent.ACTION_DOWN:
+                                    startHoldingX = previousObject.getX() - renderer.getCameraPosition().x;
+                                    startHoldingZ = previousObject.getZ() - renderer.getCameraPosition().z;
+                                    startHoldingRotationAngle = Math.toDegrees(previousObject.getRotY());
+                                    startHoldingCameraAngle = Math.toDegrees(renderer.getCameraAngle());
+                                    isHoldChecked = true;
+                                    return true;
+                                case MotionEvent.ACTION_UP:
+                                case MotionEvent.ACTION_CANCEL:
+                                    cancelHolding();
+                                    return true;
                             }
-                            isHoldChecked = isChecked;
+                            return false;
                         }
                     });
 
@@ -876,9 +884,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+                                cancelHolding();
                                 int value = fixture.getHeight() - 1;
                                 if (value > 0) {
                                     fixtureHeight.setText(new DecimalFormat("##.##").format(value * 0.01f));
@@ -892,9 +898,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+
                                 int value = fixture.getHeight() + 1;
                                 fixtureHeight.setText(new DecimalFormat("##.##").format(value * 0.01f));
                                 fixture.setHeight(value);
@@ -908,9 +912,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+                                cancelHolding();
                                 previousObject.setX(previousObject.getX() - 0.01f);
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
                                 storedFixture.setX(storedFixture.getPosition().x - 1);
@@ -924,9 +926,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+                                cancelHolding();
                                 previousObject.setX(previousObject.getX() + 0.01f);
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
                                 storedFixture.setX(storedFixture.getPosition().x + 1);
@@ -943,9 +943,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+                                cancelHolding();
                                 int value = fixture.getWidth() - 1;
                                 if (value > 0) {
                                     fixture.setWidth(value);
@@ -962,9 +960,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+                                cancelHolding();
                                 int value = fixture.getWidth() + 1;
                                 fixture.setWidth(value);
                                 fixtureWidth.setText(new DecimalFormat("##.##").format(value * 0.01f));
@@ -981,9 +977,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+                                cancelHolding();
                                 previousObject.setZ(previousObject.getZ() - 0.01f);
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
                                 storedFixture.setY(storedFixture.getPosition().y - 1);
@@ -997,9 +991,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+                                cancelHolding();
                                 previousObject.setZ(previousObject.getZ() + 0.01f);
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
                                 storedFixture.setY(storedFixture.getPosition().y + 1);
@@ -1016,9 +1008,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+                                cancelHolding();
                                 int value = fixture.getDepth() - 1;
                                 if (value > 0) {
                                     fixture.setDepth(value);
@@ -1035,9 +1025,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+                                cancelHolding();
                                 int value = fixture.getDepth() + 1;
                                 fixture.setDepth(value);
                                 fixtureDepth.setText(new DecimalFormat("##.##").format(value * 0.01f));
@@ -1054,9 +1042,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+                                cancelHolding();
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
                                 double value = storedFixture.getRotationAngle() - 1;
                                 if (Double.compare(value, 0) < 0) {
@@ -1074,9 +1060,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                         @Override
                         public void onTouchRepeat(View view) {
                             synchronized (this) {
-                                if (isHoldChecked && holdCheckbox.isChecked()) {
-                                    holdCheckbox.setChecked(false);
-                                }
+                                cancelHolding();
                                 Fixture storedFixture = FixturesRepository.getInstance().getFixture(fixture.getName());
                                 double value = storedFixture.getRotationAngle() + 1;
                                 if (Double.compare(value, 360) >= 0) {
@@ -1136,5 +1120,9 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                 minimap.postInvalidate();
             }
         });
+    }
+
+    private void cancelHolding() {
+        isHoldChecked = false;
     }
 }

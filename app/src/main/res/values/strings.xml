@@ -10,8 +10,8 @@
     <string name="process_floor_definition">"The process of floor definition..."</string>
     <string name="surface_is_not_available">"Cannot display of scene"</string>
 
-    <string name="fixture_dialog_nothing_targeted">Nothing targeted</string>
-    <string name="fixture_dialog_nothing_targeted_hint">(Point the target at a map object to make changes)</string>
+    <string name="fixture_dialog_nothing_targeted">Nothing selected</string>
+    <string name="fixture_dialog_nothing_targeted_hint">(Point the devoce at the map object to make changes)</string>
 
     <string name="fixture_dialog_targeted_distance" formatted="false">Distance: %.2f m</string>
     <string name="fixture_dialog_targeted_height" formatted="false">Height: %.2f m</string>

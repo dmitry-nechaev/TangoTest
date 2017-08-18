@@ -86,6 +86,7 @@
                     <TextView
                         style="@style/fixture_modal_text"
                         android:layout_marginBottom="32dp"
+                        android:textStyle="bold"
                         android:text="@string/fixture_dialog_nothing_targeted" />
 
                     <TextView
@@ -103,6 +104,7 @@
                     <TextView
                         android:id="@+id/fixture_name"
                         style="@style/fixture_modal_text"
+                        android:textStyle="bold"
                         android:layout_marginBottom="16dp" />
 
                     <TextView
@@ -149,6 +151,7 @@
                     <TextView
                         android:id="@+id/delete_fixture_name"
                         style="@style/fixture_modal_text"
+                        android:textStyle="bold"
                         android:layout_marginBottom="16dp" />
 
                     <TextView
@@ -181,6 +184,7 @@
                     <TextView
                         android:id="@+id/modify_fixture_name"
                         style="@style/fixture_modal_text"
+                        android:textStyle="bold"
                         android:layout_marginBottom="16dp" />
 
                     <LinearLayout
@@ -366,12 +370,11 @@
 
                     </LinearLayout>
 
-                    <CheckBox
+                    <Button
                         android:id="@+id/modify_fixture_hold"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
-                        android:checked="false"
                         android:text="@string/fixture_dialog_hold"
                         android:textColor="@android:color/black" />
 

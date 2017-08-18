@@ -23,7 +23,7 @@ public class Minimap extends View {
     private final int LAYOUT_PADDING = 16;
     private Paint paint;
     private int minX, minY, maxX, maxY;
-    private float delta = 0.5f;
+    private float delta = 0.25f;
     private int cameraX, cameraY;
     private double cameraRotation;
     private double cameraYaw, cameraPitch, cameraRoll;
