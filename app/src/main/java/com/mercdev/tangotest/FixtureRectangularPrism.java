@@ -51,6 +51,7 @@ public class FixtureRectangularPrism extends Object3D {
     private boolean mCreateVertexColorBuffer;
     private ArrayList<Facet> facets = new ArrayList<>();
     private boolean needUpdateVertexBuffer;
+    private Fixture.Type type = Fixture.Type.Fixture;
     /**
      * Creates a cube primitive. Calling this constructor will create texture coordinates but no vertex color buffer.
      *
@@ -285,5 +286,13 @@ public class FixtureRectangularPrism extends Object3D {
         }
         mDepth = depth;
         needUpdateVertexBuffer = true;
+    }
+
+    public void setType(Fixture.Type type) {
+        this.type = type;
+    }
+
+    public Fixture.Type getType() {
+        return type;
     }
 }

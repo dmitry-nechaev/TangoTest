@@ -20,8 +20,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -184,7 +182,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
         switch3dVisibilityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                renderer.switchFixturesVisibilyty();
+                renderer.switchFixturesVisibility();
                 v.setAlpha(renderer.isFixturesVisible() ? 1f : .4f);
             }
         });
@@ -199,14 +197,12 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
         minimap = (Minimap) findViewById(R.id.minimap);
         minimap.processFixtures();
 
-        ImageButton switchMapVisibilityButton = (ImageButton) findViewById(R.id.switch_map_visibility);
-        switchMapVisibilityButton.setOnClickListener(new View.OnClickListener() {
+        ImageButton switchWallsVisibilityButton = (ImageButton) findViewById(R.id.switch_walls_visibility);
+        switchWallsVisibilityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean isMapVisible = !minimap.getShowFixtures();
-                minimap.setShowFixtures(isMapVisible);
-                minimap.postInvalidate();
-                v.setAlpha(!isMapVisible ? 1f : .4f);
+                renderer.switchWallsVisibility();
+                v.setAlpha(renderer.isWallsVisible() ? 1f : .4f);
             }
         });
 
@@ -687,13 +683,13 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
         ArrayList<Fixture> fixtures = new ArrayList<>();
 
         int fixtureColor = getResources().getColor(R.color.object_color);
-        fixtures.add(new Fixture("Fixture1", new Point(345, -845), 280, 25, 910, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture2", new Point(-860, -845), 280, 25, 910, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture3", new Point(-835, 40), 280, 1180, 25, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture4", new Point(-835, -845), 280, 1180, 25, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture5", new Point(-257, -290), 137, 86, 210, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture6", new Point(-457, -390), 280, 100, 200, 0f, fixtureColor));
-        fixtures.add(new Fixture("Fixture7", new Point(-657, -490), 137, 210, 86, 0f, fixtureColor));
+        fixtures.add(new Fixture("1", new Point(345, -845), 280, 25, 910, 0f, fixtureColor, Fixture.Type.Wall));
+        fixtures.add(new Fixture("2", new Point(-860, -845), 280, 25, 910, 0f, fixtureColor, Fixture.Type.Wall));
+        fixtures.add(new Fixture("3", new Point(-835, 40), 280, 1180, 25, 0f, fixtureColor, Fixture.Type.Wall));
+        fixtures.add(new Fixture("4", new Point(-835, -845), 280, 1180, 25, 0f, fixtureColor, Fixture.Type.Wall));
+        fixtures.add(new Fixture("1", new Point(-257, -290), 137, 86, 210, 0f, fixtureColor, Fixture.Type.Couch));
+        fixtures.add(new Fixture("2", new Point(-457, -390), 280, 100, 200, 0f, fixtureColor, Fixture.Type.Couch));
+        fixtures.add(new Fixture("3", new Point(-657, -490), 137, 210, 86, 0f, fixtureColor, Fixture.Type.Couch));
 
         FixturesRepository.getInstance().setFixtures(fixtures);
     }

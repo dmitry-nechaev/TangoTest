@@ -47,7 +47,7 @@
                 android:src="@drawable/ic_glasses" />
 
             <ImageButton
-                android:id="@+id/switch_map_visibility"
+                android:id="@+id/switch_walls_visibility"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
@@ -370,7 +370,7 @@
                         android:id="@+id/modify_fixture_hold"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
+                        android:layout_marginBottom="8dp"
                         android:text="@string/fixture_dialog_hold"
                         android:textColor="@android:color/black" />
 
