@@ -203,8 +203,9 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
         switchMapVisibilityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean isMapVisible = mapContainer.getVisibility() == View.VISIBLE;
-                mapContainer.setVisibility(isMapVisible ? View.GONE : View.VISIBLE);
+                boolean isMapVisible = !minimap.getShowFixtures();
+                minimap.setShowFixtures(isMapVisible);
+                minimap.postInvalidate();
                 v.setAlpha(!isMapVisible ? 1f : .4f);
             }
         });

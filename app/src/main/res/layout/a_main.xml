@@ -88,10 +88,6 @@
                         android:layout_marginBottom="32dp"
                         android:textStyle="bold"
                         android:text="@string/fixture_dialog_nothing_targeted" />
-
-                    <TextView
-                        style="@style/fixture_modal_text"
-                        android:text="@string/fixture_dialog_nothing_targeted_hint" />
                 </LinearLayout>
 
                 <LinearLayout
