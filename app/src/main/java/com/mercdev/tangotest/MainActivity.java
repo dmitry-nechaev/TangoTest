@@ -276,7 +276,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                 // OpenGL thread or in the UI thread.
                 synchronized (MainActivity.this) {
                     try {
-                        TangoSupport.initialize();
+                        TangoSupport.initialize(tango);
                         config = setupTangoConfig(tango);
                         tango.connect(config);
                         startupTango();
@@ -545,6 +545,7 @@ public class MainActivity extends Activity implements FloatObjectFinder.OnFloatO
                                     rgbTimestampGlThread,
                                     TangoPoseData.COORDINATE_FRAME_AREA_DESCRIPTION,
                                     TangoPoseData.COORDINATE_FRAME_CAMERA_COLOR,
+                                    TangoSupport.TANGO_SUPPORT_ENGINE_OPENGL,
                                     TangoSupport.TANGO_SUPPORT_ENGINE_OPENGL,
                                     displayRotation);
                             if (lastFramePose.statusCode == TangoPoseData.POSE_VALID) {

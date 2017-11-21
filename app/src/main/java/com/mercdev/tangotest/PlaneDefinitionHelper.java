@@ -40,6 +40,7 @@ public class PlaneDefinitionHelper {
                     TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
                     TangoPoseData.COORDINATE_FRAME_CAMERA_COLOR,
                     TangoSupport.TANGO_SUPPORT_ENGINE_OPENGL,
+                    TangoSupport.TANGO_SUPPORT_ENGINE_OPENGL,
                     TangoSupport.ROTATION_IGNORED);
 
             if (devicePose.statusCode == TangoPoseData.POSE_VALID) {
